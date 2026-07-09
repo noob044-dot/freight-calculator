@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { 
   Truck, Shield, Zap, Check, X, Users, 
   BarChart2, Calculator, CreditCard, ChevronDown, 
-  ChevronUp
+  ChevronUp, Globe, FileText
 } from 'lucide-react';
 import { PincodeAutocomplete } from '../components/PincodeAutocomplete';
 import { ModeSelector, TransportMode } from '../components/ModeSelector';
