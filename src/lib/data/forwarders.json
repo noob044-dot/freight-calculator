@@ -1,0 +1,137 @@
+[
+  {
+    "id": "fwd-safexpress",
+    "name": "Safexpress Logistics",
+    "gstin": "27AAFCS4123K1Z1",
+    "rating": 4.8,
+    "responseSlaMins": 24,
+    "winRate": 75,
+    "coveredLanes": [
+      "MAHARASHTRA",
+      "GUJARAT",
+      "DELHI",
+      "KARNATAKA",
+      "TAMIL NADU"
+    ],
+    "supportedModes": [
+      "road",
+      "rail"
+    ],
+    "rateCard": [
+      {
+        "originState": "MAHARASHTRA",
+        "destState": "DELHI",
+        "mode": "road",
+        "basePrice": 15000,
+        "pricePerKg": 4.5
+      },
+      {
+        "originState": "MAHARASHTRA",
+        "destState": "GUJARAT",
+        "mode": "road",
+        "basePrice": 6000,
+        "pricePerKg": 2.2
+      },
+      {
+        "originState": "GUJARAT",
+        "destState": "DELHI",
+        "mode": "road",
+        "basePrice": 10000,
+        "pricePerKg": 3.8
+      },
+      {
+        "originState": "MAHARASHTRA",
+        "destState": "DELHI",
+        "mode": "rail",
+        "basePrice": 8000,
+        "pricePerKg": 1.8
+      }
+    ]
+  },
+  {
+    "id": "fwd-bluedart",
+    "name": "Blue Dart Cargo",
+    "gstin": "27AABCB8192A2Z5",
+    "rating": 4.9,
+    "responseSlaMins": 12,
+    "winRate": 82,
+    "coveredLanes": [
+      "DELHI",
+      "MAHARASHTRA",
+      "KARNATAKA",
+      "TAMIL NADU",
+      "HARYANA",
+      "GUJARAT"
+    ],
+    "supportedModes": [
+      "air",
+      "road"
+    ],
+    "rateCard": [
+      {
+        "originState": "MAHARASHTRA",
+        "destState": "DELHI",
+        "mode": "air",
+        "basePrice": 50000,
+        "pricePerKg": 85
+      },
+      {
+        "originState": "MAHARASHTRA",
+        "destState": "KARNATAKA",
+        "mode": "air",
+        "basePrice": 30000,
+        "pricePerKg": 65
+      },
+      {
+        "originState": "MAHARASHTRA",
+        "destState": "DELHI",
+        "mode": "road",
+        "basePrice": 18000,
+        "pricePerKg": 5.2
+      }
+    ]
+  },
+  {
+    "id": "fwd-concor",
+    "name": "Container Corp of India (CONCOR)",
+    "gstin": "07AAACC3912J1Z0",
+    "rating": 4.5,
+    "responseSlaMins": 48,
+    "winRate": 68,
+    "coveredLanes": [
+      "GUJARAT",
+      "MAHARASHTRA",
+      "DELHI",
+      "TAMIL NADU",
+      "WEST BENGAL",
+      "KARNATAKA"
+    ],
+    "supportedModes": [
+      "sea",
+      "rail"
+    ],
+    "rateCard": [
+      {
+        "originState": "MAHARASHTRA",
+        "destState": "DELHI",
+        "mode": "rail",
+        "basePrice": 9000,
+        "pricePerKg": 1.6
+      },
+      {
+        "originState": "GUJARAT",
+        "destState": "MAHARASHTRA",
+        "mode": "sea",
+        "basePrice": 15000,
+        "pricePerKg": 2.5
+      },
+      {
+        "originState": "MAHARASHTRA",
+        "destState": "TAMIL NADU",
+        "mode": "sea",
+        "basePrice": 22000,
+        "pricePerKg": 3.1
+      }
+    ]
+  }
+]

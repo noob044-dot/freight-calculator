@@ -1,0 +1,26 @@
+[
+  {
+    "id": "lead-oyaxa2u96",
+    "name": "Viknesh Test",
+    "phone": "9876543210",
+    "email": "viknesh@test.com",
+    "company": "Viknesh Corp",
+    "monthlyVolume": "50+",
+    "originPincode": "400001",
+    "destPincode": "110001",
+    "originState": "Maharashtra",
+    "destState": "Delhi",
+    "weightKg": 10000,
+    "commodity": "general",
+    "mode": "road",
+    "calculatedCost": 59382,
+    "score": 100,
+    "urgency": "medium",
+    "isHot": true,
+    "leadCost": 1000,
+    "createdAt": "2026-07-09T23:49:26.622Z",
+    "status": "New",
+    "assignedForwarderId": null,
+    "bids": []
+  }
+]

@@ -110,6 +110,7 @@ export default function Home() {
   // Lead capture form
   const [leadForm, setLeadForm] = useState({ name: '', phone: '', email: '', company: '', volume: '1-5' });
   const [leadSuccess, setLeadSuccess] = useState(false);
+  const [leadLoading, setLeadLoading] = useState(false);
 
   // FAQ Accordion State
   const [faqOpen, setFaqOpen] = useState<number | null>(null);
@@ -166,11 +167,49 @@ export default function Home() {
     }
   };
 
-  const handleLeadSubmit = (e: React.FormEvent) => {
+  const handleLeadSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate lead capture
-    setLeadSuccess(true);
-    setLeadForm({ name: '', phone: '', email: '', company: '', volume: '1-5' });
+    setLeadLoading(true);
+
+    try {
+      const chosenMode = activeMode === 'all'
+        ? (Object.keys(allQuotes).find((k) => !allQuotes[k].error) || 'road')
+        : activeMode;
+      const activeQuote = allQuotes[chosenMode];
+
+      const res = await fetch('/api/leads', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: leadForm.name,
+          phone: leadForm.phone,
+          email: leadForm.email,
+          company: leadForm.company,
+          monthlyVolume: leadForm.volume,
+          originPincode: origin,
+          destPincode: dest,
+          weightKg: Number(weight),
+          commodity: commodity,
+          mode: chosenMode,
+          calculatedCost: activeQuote ? activeQuote.total : 0
+        })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setLeadSuccess(true);
+        setLeadForm({ name: '', phone: '', email: '', company: '', volume: '1-5' });
+      } else {
+        alert(data.error || 'Submission failed');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error. Please try again.');
+    } finally {
+      setLeadLoading(false);
+    }
   };
 
   const toggleFaq = (index: number) => {
@@ -485,9 +524,12 @@ export default function Home() {
                   </div>
                   <button
                     type="submit"
-                    className="px-6 py-3 bg-accent hover:bg-accent-hover text-white text-xs font-bold uppercase tracking-wider rounded-lg transition-colors cursor-pointer shadow-sm"
+                    disabled={leadLoading}
+                    className={`px-6 py-3 text-white text-xs font-bold uppercase tracking-wider rounded-lg transition-colors shadow-sm ${
+                      leadLoading ? 'bg-accent/50 cursor-not-allowed' : 'bg-accent hover:bg-accent-hover cursor-pointer'
+                    }`}
                   >
-                    Submit Booking Request
+                    {leadLoading ? 'Submitting...' : 'Submit Booking Request'}
                   </button>
                 </form>
               )}
