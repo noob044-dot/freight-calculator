@@ -1,0 +1,15 @@
+[
+  {
+    "id": "inv-m4ngf0hdo",
+    "forwarderId": "fwd-safexpress",
+    "forwarderName": "Safexpress Logistics",
+    "month": "July 2026",
+    "leadsCount": 1,
+    "subtotal": 1000,
+    "cgst": 90,
+    "sgst": 90,
+    "total": 1180,
+    "status": "Unpaid",
+    "createdAt": "2026-07-09T23:54:21.809Z"
+  }
+]

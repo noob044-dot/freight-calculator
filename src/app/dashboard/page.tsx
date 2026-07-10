@@ -11,6 +11,8 @@ import { Lead, Forwarder, Invoice, ForwarderRate } from '../../lib/db';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
+const AUTH_HEADER = 'Basic ' + btoa('admin:admin123');
+
 export default function DashboardPage() {
   const [role, setRole] = useState<'admin' | 'forwarder'>('admin');
   const [selectedForwarderId, setSelectedForwarderId] = useState<string>('fwd-safexpress');
@@ -43,8 +45,8 @@ export default function DashboardPage() {
     setLoading(true);
     try {
       const [leadsRes, forwardersRes] = await Promise.all([
-        fetch('/api/leads'),
-        fetch('/api/forwarders')
+        fetch('/api/leads', { headers: { Authorization: AUTH_HEADER } }),
+        fetch('/api/forwarders', { headers: { Authorization: AUTH_HEADER } })
       ]);
       
       const leadsData = await leadsRes.json();
@@ -76,7 +78,10 @@ export default function DashboardPage() {
     try {
       const res = await fetch('/api/forwarders/bid', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': AUTH_HEADER
+        },
         body: JSON.stringify({
           leadId: bidForm.leadId,
           forwarderId: selectedForwarderId,
@@ -127,7 +132,10 @@ export default function DashboardPage() {
     try {
       const res = await fetch('/api/forwarders/status', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': AUTH_HEADER
+        },
         body: JSON.stringify({
           leadId,
           status: newStatus,
@@ -152,7 +160,10 @@ export default function DashboardPage() {
     try {
       const res = await fetch('/api/forwarders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': AUTH_HEADER
+        },
         body: JSON.stringify({
           forwarderId: selectedForwarderId,
           rateCard: updatedRates
@@ -191,7 +202,10 @@ export default function DashboardPage() {
     try {
       const res = await fetch('/api/forwarders/invoice-pay', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': AUTH_HEADER
+        },
         body: JSON.stringify({ invoiceId })
       });
 
