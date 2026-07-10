@@ -11,8 +11,6 @@ import { Lead, Forwarder, Invoice, ForwarderRate } from '../../lib/db';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-const AUTH_HEADER = 'Basic ' + btoa('admin:admin123');
-
 export default function DashboardPage() {
   const [role, setRole] = useState<'admin' | 'forwarder'>('admin');
   const [selectedForwarderId, setSelectedForwarderId] = useState<string>('fwd-safexpress');
@@ -44,9 +42,10 @@ export default function DashboardPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
+      const authHeader = 'Basic ' + btoa('admin:admin123');
       const [leadsRes, forwardersRes] = await Promise.all([
-        fetch('/api/leads', { headers: { Authorization: AUTH_HEADER } }),
-        fetch('/api/forwarders', { headers: { Authorization: AUTH_HEADER } })
+        fetch('/api/leads', { headers: { Authorization: authHeader } }),
+        fetch('/api/forwarders', { headers: { Authorization: authHeader } })
       ]);
       
       const leadsData = await leadsRes.json();
@@ -76,11 +75,12 @@ export default function DashboardPage() {
     if (!bidForm) return;
 
     try {
+      const authHeader = 'Basic ' + btoa('admin:admin123');
       const res = await fetch('/api/forwarders/bid', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': AUTH_HEADER
+          'Authorization': authHeader
         },
         body: JSON.stringify({
           leadId: bidForm.leadId,
@@ -130,11 +130,12 @@ export default function DashboardPage() {
   // 2. Change Status Pipeline
   const handleStatusChange = async (leadId: string, newStatus: string) => {
     try {
+      const authHeader = 'Basic ' + btoa('admin:admin123');
       const res = await fetch('/api/forwarders/status', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': AUTH_HEADER
+          'Authorization': authHeader
         },
         body: JSON.stringify({
           leadId,
@@ -158,11 +159,12 @@ export default function DashboardPage() {
   // 3. Edit Rate Card
   const saveRateCard = async (updatedRates: ForwarderRate[]) => {
     try {
+      const authHeader = 'Basic ' + btoa('admin:admin123');
       const res = await fetch('/api/forwarders', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': AUTH_HEADER
+          'Authorization': authHeader
         },
         body: JSON.stringify({
           forwarderId: selectedForwarderId,
@@ -200,11 +202,12 @@ export default function DashboardPage() {
   // 4. Pay Invoice via Razorpay Sandbox
   const handleInvoicePay = async (invoiceId: string) => {
     try {
+      const authHeader = 'Basic ' + btoa('admin:admin123');
       const res = await fetch('/api/forwarders/invoice-pay', {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': AUTH_HEADER
+          'Authorization': authHeader
         },
         body: JSON.stringify({ invoiceId })
       });
@@ -298,7 +301,7 @@ export default function DashboardPage() {
       <div className="min-h-screen bg-bg text-fg flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <div className="w-10 h-10 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
-          <p className="text-sm text-fg-muted font-mono">Loading marketplace portal...</p>
+          <p className="text-sm text-fg-muted font-mono">Loading Marketplace Portal...</p>
         </div>
       </div>
     );
@@ -313,7 +316,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
               <Building2 className="w-6 h-6 text-accent" />
-              <span className="font-bold tracking-wider text-sm uppercase">Freight Marketplace</span>
+              <span className="font-bold tracking-wider text-sm uppercase">Marketplace Portal</span>
             </div>
             
             <div className="flex items-center gap-4">
