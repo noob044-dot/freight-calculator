@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Truck, Shield, Zap, Check, X, 
   Calculator, ChevronDown, 
   Globe, Play, Terminal
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, useInView } from 'framer-motion';
 import { PincodeAutocomplete } from '../components/PincodeAutocomplete';
 import { ModeSelector, TransportMode } from '../components/ModeSelector';
 import { QuoteResults } from '../components/QuoteResults';
@@ -18,27 +18,28 @@ const VEHICLES = [
   { code: 'auto', name: 'Auto-Select (Recommended)' },
   { code: '16T', name: '16 Ton Truck (2 Axle)' },
   { code: '25T', name: '25 Ton Truck (3 Axle)' },
-  { code: '40T', name: '40 Ton Trailer (4-6 Axle)' },
+  { code: '31T', name: '31 Ton Truck (4 Axle)' },
+  { code: '40T', name: '40 Ton Trailer (Flatbed)' },
 ];
 
 const CONTAINER_TYPES = [
-  { code: 'auto', name: 'Auto-Select Container' },
-  { code: '20ft_GP', name: '20ft General Purpose' },
-  { code: '40ft_GP', name: '40ft General Purpose' },
-  { code: '40ft_HC', name: '40ft High Cube' },
-  { code: '20ft_RF', name: '20ft Reefer' },
-  { code: '40ft_RF', name: '40ft Reefer' },
+  { code: 'auto', name: 'Auto-Select (Recommended)' },
+  { code: '20DV', name: '20ft Dry Van' },
+  { code: '40DV', name: '40ft Dry Van' },
+  { code: '40HC', name: '40ft High Cube' },
 ];
 
 const INCOTERMS = [
-  { code: 'EXW', name: 'EXW (Ex Works)' },
-  { code: 'FOB', name: 'FOB (Free on Board)' },
-  { code: 'CIF', name: 'CIF (Cost, Insurance & Freight)' },
-  { code: 'CFR', name: 'CFR (Cost & Freight)' },
+  { code: 'EXW', name: 'EXW - Ex Works' },
+  { code: 'FOB', name: 'FOB - Free On Board' },
+  { code: 'CIF', name: 'CIF - Cost, Insurance & Freight' },
+  { code: 'DDP', name: 'DDP - Delivered Duty Paid' },
 ];
 
 // Spring physics
-const springGentle = { type: 'spring' as const, stiffness: 220, damping: 20 };
+export const springGentle = { type: 'spring' as const, stiffness: 220, damping: 20 };
+export const springStandard = { type: 'spring' as const, stiffness: 280, damping: 24 };
+export const springMagnetic = { type: 'spring' as const, stiffness: 450, damping: 30 };
 
 export default function Home() {
   const [activeMode, setActiveMode] = useState<TransportMode>('all');
@@ -78,15 +79,18 @@ export default function Home() {
   const [accuracyCount, setAccuracyCount] = useState(0);
   const [savingsCount, setSavingsCount] = useState(0);
 
+  const statsRef = useRef<HTMLDivElement>(null);
+  const statsInView = useInView(statsRef, { once: true, margin: "-100px" });
+
   useEffect(() => {
-    // Simple mock counter increments on load
+    if (!statsInView) return;
     const interval = setInterval(() => {
       setPincodeCount(prev => (prev < 19277 ? Math.min(prev + 511, 19277) : 19277));
       setAccuracyCount(prev => (prev < 97 ? Math.min(prev + 3, 97) : 97));
       setSavingsCount(prev => (prev < 200000 ? Math.min(prev + 6700, 200000) : 200000));
     }, 30);
     return () => clearInterval(interval);
-  }, []);
+  }, [statsInView]);
 
   const handleCalculate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -266,7 +270,7 @@ export default function Home() {
           </div>
 
           {/* Trust Bar with load countup */}
-          <div className="pt-16 max-w-4xl mx-auto border-t border-white/5 grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div ref={statsRef} className="pt-16 max-w-4xl mx-auto border-t border-white/5 grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
               <div className="text-2xl font-bold font-mono text-white tracking-tight">
                 {pincodeCount.toLocaleString('en-IN')}+

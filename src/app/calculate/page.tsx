@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   X, Calculator, ChevronDown, 
   ArrowRight, HelpCircle, Copy, CheckSquare, 
@@ -88,7 +88,7 @@ export default function CalculatePage() {
     return { x: 150, y: 180, name: 'Central Hub' };
   };
 
-  const handleCalculate = async () => {
+  const handleCalculate = useCallback(async () => {
     setLoading(true);
     setError(null);
     setShowResults(false);
@@ -131,9 +131,9 @@ export default function CalculatePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [origin, dest, weight, commodity, vehicle, cargoValue, dimensions, dimUnit, containerType, incoterm]);
 
-  const handleClear = () => {
+  const handleClear = useCallback(() => {
     setOrigin('');
     setDest('');
     setWeight('10000');
@@ -141,7 +141,7 @@ export default function CalculatePage() {
     setDimensions({ length: '', width: '', height: '' });
     setError(null);
     setShowResults(false);
-  };
+  }, []);
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -193,7 +193,7 @@ export default function CalculatePage() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [origin, dest, weight, commodity, vehicle, containerType, incoterm, cargoValue, dimensions, dimUnit]);
+  }, [handleCalculate, handleClear]);
 
   // Coordinates values
   const startCoords = getCoordinates(origin);

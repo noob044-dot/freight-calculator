@@ -363,7 +363,7 @@ export default function DashboardPage() {
       {/* Sidebar (collapsible spring) */}
       <aside 
         className="bg-black border-r border-white/5 flex flex-col justify-between transition-all duration-300 z-30"
-        style={{ width: isSidebarExpanded ? '260px' : '72px' }}
+        style={{ width: isSidebarExpanded ? '280px' : '72px' }}
       >
         <div className="space-y-8 py-6">
           {/* Logo draw header */}
