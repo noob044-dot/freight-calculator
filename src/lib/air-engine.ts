@@ -1,6 +1,7 @@
 import { getPincodeData } from './pincode-db';
 import { QuoteInput, QuoteResult } from './types';
 import { COMMODITY_FACTORS } from './road-engine';
+import { getBARate, getSpiceXpressRate, getIndiGoRate, getBOMBLRRate } from './ba-rates';
 
 const AIRPORTS: Record<string, { name: string; lat: number; lon: number }> = {
   BOM: { name: 'Chhatrapati Shivaji Maharaj International Airport (Mumbai)', lat: 19.0886, lon: 72.8680 },
@@ -102,6 +103,16 @@ export async function calculateAir(input: QuoteInput): Promise<QuoteResult> {
   const total = baseFreight + fuelSurcharge + commodityAdjustment + pickupLastMile + deliveryLastMile + entryTax + insurance + documentation;
   const transitDays = Math.ceil((airDistance / 800) + 1); // 1-2 days normally
 
+  // ── BA Competitor Benchmark Lookups ────────────────────────────────
+  const baRate = getBARate(input.originPincode);
+  const destAirportCode = dest.nearestAirport?.toUpperCase() || '';
+  const originAirportCode = origin.nearestAirport?.toUpperCase() || '';
+  const spiceRate = getSpiceXpressRate(originAirportCode, destAirportCode, input.weightKg);
+  const indigoRate = getIndiGoRate(originAirportCode, destAirportCode, input.weightKg);
+  const blrRate = originAirportCode === 'BOM' && destAirportCode === 'BLR'
+    ? getBOMBLRRate(input.weightKg)
+    : null;
+
   return {
     mode: 'air',
     distanceKm: Math.round(airDistance * 10) / 10,
@@ -124,5 +135,11 @@ export async function calculateAir(input: QuoteInput): Promise<QuoteResult> {
     transitDays,
     originName: `${origin.district}, ${origin.state}`,
     destName: `${dest.district}, ${dest.state}`,
+    benchmarks: {
+      blueDartBA: baRate,
+      spiceXpress: spiceRate,
+      indiGo: indigoRate,
+      bomBlrSpecial: blrRate,
+    },
   };
 }

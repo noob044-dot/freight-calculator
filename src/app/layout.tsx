@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
-import { Inter, JetBrains_Mono } from 'next/font/google';
+import { Source_Sans_3, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 
-const inter = Inter({
+const sourceSans = Source_Sans_3({
   variable: '--font-sans',
   subsets: ['latin'],
   display: 'swap',
+  weight: ['300', '400', '600', '700'],
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -27,7 +28,8 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      suppressHydrationWarning
+      className={`${sourceSans.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body suppressHydrationWarning className="min-h-full flex flex-col bg-bg text-fg">
         {children}

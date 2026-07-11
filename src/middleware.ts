@@ -4,8 +4,9 @@ import type { NextRequest } from 'next/server';
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Exclude quote API, Next.js internal files, and public assets
+  // Exclude login page, quote API, Next.js internal files, and public assets
   if (
+    pathname === '/login' ||
     pathname.startsWith('/api/quote') ||
     pathname.startsWith('/_next') ||
     pathname.includes('.') ||

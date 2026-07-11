@@ -1,33 +1,18 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Truck, Shield, Zap, Check, X, Users, 
-  BarChart2, Calculator, CreditCard, ChevronDown, 
-  ChevronUp, Globe, FileText
+  Truck, Shield, Zap, Check, X, 
+  Calculator, ChevronDown, 
+  Globe, Play, Terminal
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { PincodeAutocomplete } from '../components/PincodeAutocomplete';
 import { ModeSelector, TransportMode } from '../components/ModeSelector';
 import { QuoteResults } from '../components/QuoteResults';
+import { SearchableCommodity } from '../components/SearchableCommodity';
 import { QuoteResult, Benchmark } from '../lib/types';
-
-const COMMODITIES = [
-  { code: 'general', name: 'General Cargo' },
-  { code: 'auto-parts', name: 'Auto Parts' },
-  { code: 'pharma', name: 'Pharma / Cold Chain' },
-  { code: 'hazardous', name: 'Hazardous / DG' },
-  { code: 'perishable', name: 'Perishable (F&V)' },
-  { code: 'odc', name: 'Over-Dimensional' },
-  { code: 'steel', name: 'Steel / Cement' },
-  { code: 'textiles', name: 'Textiles' },
-  { code: 'electronics', name: 'Electronics' },
-  { code: 'chemicals', name: 'Chemicals' },
-  { code: 'fmcg', name: 'FMCG' },
-  { code: 'machinery', name: 'Machinery' },
-  { code: 'furniture', name: 'Furniture' },
-  { code: 'paper', name: 'Paper / Packaging' },
-  { code: 'plastic', name: 'Plastic Granules' },
-];
+import { BackgroundThree } from '../components/BackgroundThree';
 
 const VEHICLES = [
   { code: 'auto', name: 'Auto-Select (Recommended)' },
@@ -52,33 +37,8 @@ const INCOTERMS = [
   { code: 'CFR', name: 'CFR (Cost & Freight)' },
 ];
 
-const BENEFITS = [
-  { icon: Truck, title: "Exact Toll Breakdown", desc: "NHAI-verified toll plaza list with rates per vehicle type" },
-  { icon: Globe, title: "Pincode Precision", desc: "19,000+ pincodes with exact lat/lon, state, GST code & delivery zone" },
-  { icon: Shield, title: "GST Compliant", desc: "Auto inter-state tax, entry tax & e-way bill ready calculations" },
-  { icon: FileText, title: "Multi-Format Export", desc: "PDF, Excel, JSON, CSV — ready for accounting & ERP systems" },
-  { icon: Zap, title: "Instant Multi-Modal", desc: "Instant comparison across Road, Air, Sea and Rail in a single click" },
-  { icon: BarChart2, title: "Competitor Benchmarks", desc: "Estimated Freightos Index + scraped rates from Cogoport, Delex" },
-];
-
-const FEATURES = [
-  { icon: Calculator, title: "Smart Vehicle Selection", desc: "Auto-selects 16T/25T/40T based on weight & commodity requirements" },
-  { icon: CreditCard, title: "Cargo Valuation & Insurance", desc: "Auto insurance calculations at 0.3% of cargo value with minimum limits" },
-  { icon: Users, title: "Lead Generation", desc: "Convert quotes to qualified leads and send directly to active forwarders" },
-  { icon: BarChart2, title: "Competitive Analytics", desc: "Compare pricing against market averages to optimize transport routing" },
-];
-
-const TESTIMONIALS = [
-  { name: "Rajesh Kumar", role: "Logistics Head", company: "AutoTech Components", quote: "Cut quote time from 4 hours to 30 seconds. Toll breakdown alone saves us ₹2L/month in carrier disputes.", avatar: "RK" },
-  { name: "Priya Sharma", role: "Procurement Manager", company: "MediPharma Ltd", quote: "First tool that shows competitor rates honestly. We negotiate 15% better with our freight agents now.", avatar: "PS" },
-  { name: "Amit Patel", role: "Owner", company: "Patel Roadlines", quote: "My drivers get exact toll slips. Clients get professional PDFs. Has saved countless invoicing arguments.", avatar: "AP" },
-];
-
-const PRICING = [
-  { name: "Free", price: "₹0", period: "/month", desc: "Ideal for basic estimation and casual shipping.", features: ["Unlimited Road FTL quotes", "Pincode autocomplete", "PDF report export", "Basic toll breakdown", "Community support"], cta: "Get Started Free", highlight: false },
-  { name: "Pro", price: "₹999", period: "/month", desc: "For logistics coordinators and growing businesses.", features: ["Everything in Free", "Competitor benchmarks", "Excel & JSON export formats", "Advanced toll calculations", "Quote history & API access (1k calls)", "Email support"], cta: "Upgrade to Pro", highlight: true },
-  { name: "Enterprise", price: "₹2,999", period: "/month", desc: "For full freight forwarders and ERP integrations.", features: ["Everything in Pro", "Air, Sea & Rail engines", "Incoterm & container customization", "White-label quote reports", "Unlimited API integrations", "Dedicated 24/7 account manager"], cta: "Contact Sales", highlight: false },
-];
+// Spring physics
+const springGentle = { type: 'spring' as const, stiffness: 220, damping: 20 };
 
 export default function Home() {
   const [activeMode, setActiveMode] = useState<TransportMode>('all');
@@ -96,6 +56,7 @@ export default function Home() {
 
   // Cargo value & dimensions
   const [cargoValue, setCargoValue] = useState('');
+  const [dimUnit, setDimUnit] = useState<'cm' | 'm'>('cm');
   const [dimensions, setDimensions] = useState({ length: '', width: '', height: '' });
 
   // Calculation Results
@@ -112,8 +73,20 @@ export default function Home() {
   const [leadSuccess, setLeadSuccess] = useState(false);
   const [leadLoading, setLeadLoading] = useState(false);
 
-  // FAQ Accordion State
-  const [faqOpen, setFaqOpen] = useState<number | null>(null);
+  // Animated counters
+  const [pincodeCount, setPincodeCount] = useState(0);
+  const [accuracyCount, setAccuracyCount] = useState(0);
+  const [savingsCount, setSavingsCount] = useState(0);
+
+  useEffect(() => {
+    // Simple mock counter increments on load
+    const interval = setInterval(() => {
+      setPincodeCount(prev => (prev < 19277 ? Math.min(prev + 511, 19277) : 19277));
+      setAccuracyCount(prev => (prev < 97 ? Math.min(prev + 3, 97) : 97));
+      setSavingsCount(prev => (prev < 200000 ? Math.min(prev + 6700, 200000) : 200000));
+    }, 30);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleCalculate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,15 +103,14 @@ export default function Home() {
         vehicleType: vehicle === 'auto' ? undefined : vehicle,
         valueInr: cargoValue ? Number(cargoValue) : undefined,
         dimensions: (dimensions.length || dimensions.width || dimensions.height) ? {
-          length: Number(dimensions.length || 0),
-          width: Number(dimensions.width || 0),
-          height: Number(dimensions.height || 0),
+          length: dimUnit === 'cm' ? Number(dimensions.length || 0) / 100 : Number(dimensions.length || 0),
+          width: dimUnit === 'cm' ? Number(dimensions.width || 0) / 100 : Number(dimensions.width || 0),
+          height: dimUnit === 'cm' ? Number(dimensions.height || 0) / 100 : Number(dimensions.height || 0),
         } : undefined,
         containerType: containerType === 'auto' ? undefined : containerType,
         incoterm,
       };
 
-      // Call API using mode=all to fetch all comparison quotes at once
       const res = await fetch(`/api/quote?mode=all`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -155,12 +127,11 @@ export default function Home() {
       setAllBenchmarks(data.benchmarks || {});
       setShowResults(true);
 
-      // Scroll smoothly to results
       setTimeout(() => {
         document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
       }, 100);
     } catch (err) {
-      const errMsg = err instanceof Error ? err.message : 'Calculation failed. Please verify the inputs.';
+      const errMsg = err instanceof Error ? err.message : 'Calculation failed. Please verify inputs.';
       setError(errMsg);
     } finally {
       setLoading(false);
@@ -212,62 +183,207 @@ export default function Home() {
     }
   };
 
-  const toggleFaq = (index: number) => {
-    setFaqOpen(faqOpen === index ? null : index);
-  };
-
   return (
-    <div className="min-h-screen bg-bg text-fg font-sans antialiased selection:bg-accent-soft selection:text-accent">
+    <div className="relative min-h-screen bg-[#020617] text-[#f8fafc] font-sans antialiased overflow-hidden select-none">
       
+      {/* Three.js Hero Canvas background */}
+      <BackgroundThree type="hero" />
+
       {/* 1. Header/Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-bg/90 backdrop-blur-sm border-b border-border transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2">
-              <Truck className="w-6 h-6 text-accent" />
-              <span className="text-md font-bold tracking-tight text-fg font-mono">FreightQuote.in</span>
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#020617]/40 backdrop-blur-md border-b border-white/5 transition-all">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8">
+          <div className="flex items-center justify-between h-20">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-gradient-accent flex items-center justify-center">
+                <Truck className="w-4 h-4 text-white animate-pulse" />
+              </div>
+              <span className="font-bold tracking-tight text-sm uppercase">Freight Intelligence</span>
             </div>
-            <div className="hidden md:flex items-center gap-8 text-fg-muted text-xs uppercase font-bold tracking-wider">
-              <a href="#features" className="hover:text-fg transition-colors">Features</a>
-              <a href="#benefits" className="hover:text-fg transition-colors">Benefits</a>
-              <a href="#pricing" className="hover:text-fg transition-colors">Pricing</a>
-              <a href="#faq" className="hover:text-fg transition-colors">FAQ</a>
+            <div className="hidden md:flex items-center gap-10 text-[10px] uppercase font-bold tracking-wider text-slate-400">
+              <a href="#features" className="hover:text-white transition-colors">Features</a>
+              <a href="#benefits" className="hover:text-white transition-colors">Manifesto</a>
+              <a href="#pricing" className="hover:text-white transition-colors">Licensing</a>
+              <a href="#faq" className="hover:text-white transition-colors">Docs & FAQ</a>
             </div>
-            <div className="flex items-center gap-4">
-              <a href="/dashboard" className="text-xs uppercase font-bold text-fg-muted hover:text-fg tracking-wider">Dashboard</a>
-              <a href="#calculator" className="px-4 py-2 bg-accent hover:bg-accent-hover text-white rounded-lg text-xs font-bold tracking-wider uppercase transition-colors shadow-sm">Calculator</a>
+            <div className="flex items-center gap-6">
+              <a href="/login" className="text-xs uppercase font-bold text-slate-400 hover:text-white tracking-wider transition-colors">
+                Portal Sign In
+              </a>
+              <a href="#calculator" className="bg-gradient-accent text-white font-bold text-[10px] uppercase tracking-wider px-5 py-3 rounded-organic-1 hover:scale-105 transition-all shadow-lg shadow-cyan-500/10">
+                Open Instrument
+              </a>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* 2. Hero Section */}
-      <section className="relative pt-32 pb-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-bg to-bg-elevated/40 border-b border-border">
-        <div className="max-w-4xl mx-auto text-center">
-          <span className="inline-block px-3 py-1 bg-accent-soft text-accent rounded-full text-xs font-bold uppercase tracking-wider mb-4 border border-accent/20">
-            India&apos;s most accurate logistics engine
-          </span>
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6 text-fg">
-            India&apos;s Most Accurate <br />
-            <span className="text-accent">Freight Calculator</span>
+      {/* 2. Hero Section - The Manifesto */}
+      <section className="relative min-h-[90vh] flex flex-col justify-center items-center text-center px-6 pt-32 pb-16 z-10">
+        <div className="max-w-5xl mx-auto space-y-8">
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={springGentle}
+            className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 backdrop-blur-md border border-white/10 rounded-full text-[10px] font-bold uppercase tracking-wider text-cyan-400"
+          >
+            <Shield className="w-3.5 h-3.5" />
+            Zero-Compromise Logistics Infrastructure
+          </motion.div>
+
+          {/* Big Satoshi title */}
+          <h1 className="text-5xl sm:text-7xl lg:text-8xl font-light tracking-tight leading-none text-white font-display select-text">
+            Freight <br className="sm:hidden" />
+            <span className="text-gradient-accent font-medium">Intelligence</span>
           </h1>
-          <p className="text-md sm:text-lg text-fg-muted max-w-2xl mx-auto mb-10 leading-relaxed">
-            Pincode-to-pincode accuracy, exact NHAI tolls, and multi-modal comparison engines designed for modern logistics operations.
+
+          <p className="text-sm sm:text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed select-text">
+            Exact NHAI tolls. Real carrier rates. Multi-modal benchmarks. Calculated with pincode-level accuracy in a unified querying environment.
           </p>
+
+          {/* CTA Cluster */}
+          <div className="flex flex-wrap justify-center items-center gap-4 pt-4">
+            <a 
+              href="#calculator"
+              className="px-8 py-4 bg-gradient-accent text-white font-bold text-xs uppercase tracking-wider rounded-organic-1 hover:scale-102 active:scale-95 transition-all shadow-xl shadow-cyan-500/15"
+            >
+              Calculate rate
+            </a>
+            <a 
+              href="#features"
+              className="flex items-center gap-2 px-6 py-4 bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-white/10 text-slate-300 font-bold text-xs uppercase tracking-wider rounded-organic-2 transition-all"
+            >
+              <Terminal className="w-4 h-4 text-cyan-400" />
+              API Docs
+            </a>
+            <a 
+              href="#benefits"
+              className="flex items-center gap-2 px-6 py-4 bg-white/[0.02] border border-white/5 hover:bg-white/[0.06] hover:border-white/10 text-slate-300 font-bold text-xs uppercase tracking-wider rounded-organic-3 transition-all"
+            >
+              <Play className="w-4 h-4 text-violet-400" />
+              Watch Demo
+            </a>
+          </div>
+
+          {/* Trust Bar with load countup */}
+          <div className="pt-16 max-w-4xl mx-auto border-t border-white/5 grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div className="text-center">
+              <div className="text-2xl font-bold font-mono text-white tracking-tight">
+                {pincodeCount.toLocaleString('en-IN')}+
+              </div>
+              <div className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-1">Pincodes Enriched</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold font-mono text-white tracking-tight">
+                {accuracyCount}%
+              </div>
+              <div className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-1">Toll Accuracy</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold font-mono text-white tracking-tight">
+                4 Modes
+              </div>
+              <div className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-1">Multi-Modal Hub</div>
+            </div>
+            <div className="text-center">
+              <div className="text-2xl font-bold font-mono text-emerald-400 tracking-tight">
+                ₹{(savingsCount/100000).toFixed(1)}L/mo
+              </div>
+              <div className="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-1">Client Savings</div>
+            </div>
+          </div>
+
         </div>
       </section>
 
-      {/* 3. Calculator Form & Sticky Container */}
-      <section id="calculator" className="py-12 px-4 sm:px-6 lg:px-8 border-b border-border">
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-card-custom border border-border rounded-xl p-6 sm:p-8 shadow-lg">
-            <h2 className="text-lg font-bold mb-6 flex items-center gap-2">
-              <Calculator className="w-5 h-5 text-accent" />
-              Calculate Shipping Rate
+      {/* 3. Features Section - Asymmetric Editorial Flow */}
+      <section id="features" className="relative py-28 px-6 border-t border-white/5 bg-[#020617]/80 z-10">
+        <div className="max-w-7xl mx-auto">
+          
+          <div className="max-w-xl mb-20 space-y-4">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-cyan-400">Precision Infrastructure</span>
+            <h2 className="text-4xl font-light text-white tracking-tight leading-tight">
+              Calculated without compromise.
             </h2>
+            <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+              We weave structural calculations, vehicle dimensions, and live toll plaza coordinates together into organic visual summaries.
+            </p>
+          </div>
 
-            <form onSubmit={handleCalculate} className="space-y-6">
-              {/* Origin / Dest Autocomplete */}
+          {/* Asymmetric Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-stretch">
+            
+            {/* Feature 1 - Blob 1 (Span 7) */}
+            <div className="md:col-span-7 bg-glass rounded-organic-1 p-8 hover:scale-[1.015] hover:-translate-y-2 hover:shadow-2xl hover:shadow-cyan-500/5 transition-all duration-300 flex flex-col justify-between space-y-6">
+              <div className="w-12 h-12 rounded-organic-2 bg-gradient-accent flex items-center justify-center text-white">
+                <Truck className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white mb-2">Exact Toll Plazas Breakdown</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  NHAI-verified plaza database mapped exactly to road route coordinates. Auto-calculates exact costs per vehicle axles, removing dispatcher arguments.
+                </p>
+              </div>
+            </div>
+
+            {/* Feature 2 - Blob 2 (Span 5) */}
+            <div className="md:col-span-5 bg-glass rounded-organic-2 p-8 hover:scale-[1.015] hover:-translate-y-2 hover:shadow-2xl hover:shadow-violet-500/5 transition-all duration-300 flex flex-col justify-between space-y-6">
+              <div className="w-12 h-12 rounded-organic-3 bg-gradient-accent flex items-center justify-center text-white">
+                <Globe className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white mb-2">19,000+ Pincode Precision</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Accurate database with lat/lon coordinates, state codes, and CGST/SGST matrices.
+                </p>
+              </div>
+            </div>
+
+            {/* Feature 3 - Blob 3 (Span 5) */}
+            <div className="md:col-span-5 bg-glass rounded-organic-3 p-8 hover:scale-[1.015] hover:-translate-y-2 hover:shadow-2xl hover:shadow-indigo-500/5 transition-all duration-300 flex flex-col justify-between space-y-6">
+              <div className="w-12 h-12 rounded-organic-1 bg-gradient-accent flex items-center justify-center text-white">
+                <Shield className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white mb-2">GST & Compliance Audit</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Automated CGST, SGST, IGST, entry taxes, and cargo valuation audits to guarantee audit-ready invoicing outputs.
+                </p>
+              </div>
+            </div>
+
+            {/* Feature 4 - Blob 4 (Span 7) */}
+            <div className="md:col-span-7 bg-glass rounded-organic-1 p-8 hover:scale-[1.015] hover:-translate-y-2 hover:shadow-2xl hover:shadow-cyan-500/5 transition-all duration-300 flex flex-col justify-between space-y-6">
+              <div className="w-12 h-12 rounded-organic-2 bg-gradient-accent flex items-center justify-center text-white">
+                <Zap className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-white mb-2">Instant Multi-Modal Estimation</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
+                  Compare road, express air, rail container, and ocean container rates in a single click, allowing your supply chain planner to optimize variables dynamically.
+                </p>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      {/* 4. Calculator Form Panel - The Embedded Preview */}
+      <section id="calculator" className="relative py-24 px-6 bg-[#020617]/90 z-10 border-t border-white/5">
+        <div className="max-w-4xl mx-auto">
+          
+          <div className="text-center mb-16 space-y-4">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-cyan-400 font-mono">Query Interface</span>
+            <h2 className="text-3xl font-light text-white tracking-tight">Run Rate Projections</h2>
+            <p className="text-xs text-slate-400 max-w-lg mx-auto">Input your shipping variables to trigger instant quotes and NHAI toll calculations.</p>
+          </div>
+
+          <div className="bg-glass rounded-organic-2 p-8 sm:p-10 shadow-2xl">
+            <form onSubmit={handleCalculate} className="space-y-8">
+              
+              {/* Pincodes */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <PincodeAutocomplete
                   label="Origin Area Pincode"
@@ -286,42 +402,38 @@ export default function Home() {
               {/* Weight & Commodity */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-xs font-bold text-fg-muted uppercase tracking-wider mb-2">Cargo Weight (kg)</label>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Cargo Weight (kg)</label>
                   <input
                     type="number"
                     value={weight}
                     onChange={(e) => setWeight(e.target.value)}
                     required
                     min="1"
-                    className="w-full bg-bg-elevated border border-border rounded-lg px-4 py-3 text-fg text-sm focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent font-mono"
+                    className="w-full bg-[#020617] border border-white/5 rounded-xl px-4 py-3.5 text-white text-xs focus:border-cyan-400 outline-none font-mono"
                     placeholder="e.g. 10000"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-fg-muted uppercase tracking-wider mb-2">Commodity Class</label>
-                  <select
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Commodity Class</label>
+                  <SearchableCommodity
                     value={commodity}
-                    onChange={(e) => setCommodity(e.target.value)}
-                    className="w-full bg-bg-elevated border border-border rounded-lg px-4 py-3 text-fg text-sm focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent"
-                  >
-                    {COMMODITIES.map((c) => (
-                      <option key={c.code} value={c.code}>{c.name}</option>
-                    ))}
-                  </select>
+                    onChange={setCommodity}
+                    placeholder="Search commodity code..."
+                  />
                 </div>
               </div>
 
-              {/* Advanced/Dynamic Options (Road vs Sea) */}
-              <div className="border-t border-border pt-6 space-y-6">
-                <h3 className="text-xs uppercase font-bold text-fg-muted tracking-wider">Mode Parameters (Customizable)</h3>
+              {/* Advanced Parameters */}
+              <div className="border-t border-white/5 pt-6 space-y-6">
+                <h3 className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">Engine Specific Overrides</h3>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                   <div>
-                    <label className="block text-xs font-bold text-fg-muted uppercase tracking-wider mb-2">Preferred FTL Truck</label>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Preferred Truck</label>
                     <select
                       value={vehicle}
                       onChange={(e) => setVehicle(e.target.value)}
-                      className="w-full bg-bg-elevated border border-border rounded-lg px-4 py-3 text-fg text-sm focus:outline-none focus:ring-1 focus:ring-accent"
+                      className="w-full bg-[#020617] border border-white/5 rounded-xl px-4 py-3 text-white text-xs focus:border-cyan-400 outline-none"
                     >
                       {VEHICLES.map((v) => (
                         <option key={v.code} value={v.code}>{v.name}</option>
@@ -329,11 +441,11 @@ export default function Home() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-fg-muted uppercase tracking-wider mb-2">Sea Container Type</label>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Ocean Container Type</label>
                     <select
                       value={containerType}
                       onChange={(e) => setContainerType(e.target.value)}
-                      className="w-full bg-bg-elevated border border-border rounded-lg px-4 py-3 text-fg text-sm focus:outline-none focus:ring-1 focus:ring-accent"
+                      className="w-full bg-[#020617] border border-white/5 rounded-xl px-4 py-3 text-white text-xs focus:border-cyan-400 outline-none"
                     >
                       {CONTAINER_TYPES.map((ct) => (
                         <option key={ct.code} value={ct.code}>{ct.name}</option>
@@ -341,11 +453,11 @@ export default function Home() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-fg-muted uppercase tracking-wider mb-2">Sea Incoterm</label>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Incoterm</label>
                     <select
                       value={incoterm}
                       onChange={(e) => setIncoterm(e.target.value)}
-                      className="w-full bg-bg-elevated border border-border rounded-lg px-4 py-3 text-fg text-sm focus:outline-none focus:ring-1 focus:ring-accent"
+                      className="w-full bg-[#020617] border border-white/5 rounded-xl px-4 py-3 text-white text-xs focus:border-cyan-400 outline-none"
                     >
                       {INCOTERMS.map((inc) => (
                         <option key={inc.code} value={inc.code}>{inc.name}</option>
@@ -354,51 +466,76 @@ export default function Home() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-bold text-fg-muted uppercase tracking-wider mb-2">Cargo Value (INR for Insurance)</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Cargo Value (INR for Insurance)</label>
                     <input
                       type="number"
                       value={cargoValue}
                       onChange={(e) => setCargoValue(e.target.value)}
-                      className="w-full bg-bg-elevated border border-border rounded-lg px-4 py-3 text-fg text-sm focus:outline-none focus:ring-1 focus:ring-accent font-mono"
+                      className="w-full bg-[#020617] border border-white/5 rounded-xl px-4 py-3 text-white text-xs focus:border-cyan-400 outline-none font-mono"
                       placeholder="Optional, e.g. 500000"
                     />
                   </div>
-                  <div className="sm:col-span-2 grid grid-cols-3 gap-2">
-                    <div className="col-span-3">
-                      <label className="block text-xs font-bold text-fg-muted uppercase tracking-wider mb-2">Dimensions L x W x H (Meters)</label>
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Dimensions (L x W x H)</label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const d = dimensions;
+                          if (dimUnit === 'cm') {
+                            setDimensions({
+                              length: d.length ? (Number(d.length) / 100).toFixed(2) : '',
+                              width: d.width ? (Number(d.width) / 100).toFixed(2) : '',
+                              height: d.height ? (Number(d.height) / 100).toFixed(2) : '',
+                            });
+                          } else {
+                            setDimensions({
+                              length: d.length ? (Number(d.length) * 100).toFixed(0) : '',
+                              width: d.width ? (Number(d.width) * 100).toFixed(0) : '',
+                              height: d.height ? (Number(d.height) * 100).toFixed(0) : '',
+                            });
+                          }
+                          setDimUnit(dimUnit === 'cm' ? 'm' : 'cm');
+                        }}
+                        className="text-[9px] font-bold uppercase tracking-wider text-cyan-400 hover:text-cyan-300"
+                      >
+                        Use {dimUnit === 'cm' ? 'meters' : 'cm'}
+                      </button>
                     </div>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={dimensions.length}
-                      onChange={(e) => setDimensions({ ...dimensions, length: e.target.value })}
-                      placeholder="L"
-                      className="w-full bg-bg-elevated border border-border rounded-lg px-2 py-3 text-fg text-sm focus:outline-none focus:ring-1 focus:ring-accent font-mono text-center"
-                    />
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={dimensions.width}
-                      onChange={(e) => setDimensions({ ...dimensions, width: e.target.value })}
-                      placeholder="W"
-                      className="w-full bg-bg-elevated border border-border rounded-lg px-2 py-3 text-fg text-sm focus:outline-none focus:ring-1 focus:ring-accent font-mono text-center"
-                    />
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={dimensions.height}
-                      onChange={(e) => setDimensions({ ...dimensions, height: e.target.value })}
-                      placeholder="H"
-                      className="w-full bg-bg-elevated border border-border rounded-lg px-2 py-3 text-fg text-sm focus:outline-none focus:ring-1 focus:ring-accent font-mono text-center"
-                    />
+                    <div className="grid grid-cols-3 gap-2">
+                      <input
+                        type="number"
+                        step={dimUnit === 'cm' ? '1' : '0.01'}
+                        value={dimensions.length}
+                        onChange={(e) => setDimensions({ ...dimensions, length: e.target.value })}
+                        placeholder={`L (${dimUnit})`}
+                        className="w-full bg-[#020617] border border-white/5 rounded-xl px-2 py-3 text-white text-xs focus:border-cyan-400 outline-none text-center font-mono"
+                      />
+                      <input
+                        type="number"
+                        step={dimUnit === 'cm' ? '1' : '0.01'}
+                        value={dimensions.width}
+                        onChange={(e) => setDimensions({ ...dimensions, width: e.target.value })}
+                        placeholder={`W (${dimUnit})`}
+                        className="w-full bg-[#020617] border border-white/5 rounded-xl px-2 py-3 text-white text-xs focus:border-cyan-400 outline-none text-center font-mono"
+                      />
+                      <input
+                        type="number"
+                        step={dimUnit === 'cm' ? '1' : '0.01'}
+                        value={dimensions.height}
+                        onChange={(e) => setDimensions({ ...dimensions, height: e.target.value })}
+                        placeholder={`H (${dimUnit})`}
+                        className="w-full bg-[#020617] border border-white/5 rounded-xl px-2 py-3 text-white text-xs focus:border-cyan-400 outline-none text-center font-mono"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
 
               {error && (
-                <div className="bg-error/10 border border-error/20 p-4 rounded-lg flex items-center gap-3 text-sm text-error font-medium">
+                <div className="bg-rose-500/10 border border-rose-500/20 p-4 rounded-xl flex items-center gap-3 text-xs text-rose-400 font-medium">
                   <X className="w-4 h-4 flex-shrink-0" />
                   <span>{error}</span>
                 </div>
@@ -407,38 +544,32 @@ export default function Home() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 bg-accent hover:bg-accent-hover disabled:opacity-50 text-white font-bold rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-md text-sm uppercase tracking-wider"
+                className="w-full py-4 bg-gradient-accent text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:scale-102 active:scale-98"
               >
                 {loading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
-                    Calculating freight rates...
-                  </>
+                  <span className="flex items-center gap-2 text-xs uppercase font-bold tracking-wider">
+                    <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                    Querying engine databases...
+                  </span>
                 ) : (
-                  <>
+                  <span className="flex items-center gap-2 text-xs uppercase font-bold tracking-wider">
                     <Calculator className="w-4 h-4" />
-                    Calculate Freight Rates
-                  </>
+                    Evaluate Freight Rates
+                  </span>
                 )}
               </button>
             </form>
           </div>
-        </div>
-      </section>
 
-      {/* 4. Trust Bar */}
-      <section className="py-6 px-4 bg-bg-elevated/40 border-b border-border text-center">
-        <p className="text-xs font-bold text-fg-muted uppercase tracking-widest">
-          19,277 Pincodes Enriched · NHAI Toll Integration · Multi-Modal Coverage
-        </p>
+        </div>
       </section>
 
       {/* 5. Results Section */}
       {showResults && (
-        <section id="results-section" className="py-16 px-4 sm:px-6 lg:px-8 bg-bg-elevated/20 border-b border-border scroll-mt-20">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl font-bold mb-6 text-fg">Calculation Results</h2>
-            
+        <section id="results-section" className="relative py-24 px-6 bg-[#020617] z-10 border-t border-white/5 scroll-mt-20">
+          <div className="max-w-4xl mx-auto space-y-8">
+            <h2 className="text-2xl font-bold tracking-tight text-white font-display">Engine Output Summary</h2>
+
             {/* Mode Tabs */}
             <ModeSelector activeMode={activeMode} onChangeMode={setActiveMode} />
 
@@ -458,62 +589,62 @@ export default function Home() {
             )}
 
             {/* Lead capture form */}
-            <div className="mt-12 bg-card-custom border border-border rounded-xl p-6 sm:p-8 shadow-sm">
-              <h3 className="text-lg font-bold mb-2">Request Verified Forwarder Quotes</h3>
-              <p className="text-sm text-fg-muted mb-6">
-                Send this shipment requirement to verified logistics providers to receive competing bookings.
+            <div className="bg-glass rounded-organic-3 p-8 sm:p-10 shadow-xl border border-white/5">
+              <h3 className="text-lg font-bold text-white mb-2">Request Verified Forwarder Quotes</h3>
+              <p className="text-xs text-slate-400 mb-6">
+                Send this shipment requirement to matched logistics partners to receive competing bookings.
               </p>
 
               {leadSuccess ? (
-                <div className="bg-success/10 border border-success/20 p-6 rounded-lg text-center text-success space-y-2">
-                  <Check className="w-8 h-8 mx-auto text-success" />
-                  <h4 className="font-bold text-md">Request Submitted Successfully</h4>
-                  <p className="text-xs text-success/80">Local logistics providers will reach out within 2 hours.</p>
+                <div className="bg-emerald-500/10 border border-emerald-500/20 p-8 rounded-xl text-center text-emerald-400 space-y-3">
+                  <Check className="w-10 h-10 mx-auto" />
+                  <h4 className="font-bold text-md uppercase tracking-wider">Request Dispatched</h4>
+                  <p className="text-xs text-emerald-400/80">Matched forwarders will respond in your dashboard within 2 hours.</p>
                 </div>
               ) : (
-                <form onSubmit={handleLeadSubmit} className="space-y-4">
+                <form onSubmit={handleLeadSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-fg-muted uppercase tracking-wider mb-2">Contact Name</label>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Contact Name</label>
                       <input
                         type="text"
                         value={leadForm.name}
                         onChange={(e) => setLeadForm({ ...leadForm, name: e.target.value })}
                         required
-                        className="w-full bg-bg-elevated border border-border rounded-lg px-4 py-2.5 text-fg text-sm focus:outline-none focus:ring-1 focus:ring-accent"
+                        className="w-full bg-[#020617] border border-white/5 rounded-xl px-4 py-2.5 text-white text-xs focus:border-cyan-400 outline-none"
                         placeholder="John Doe"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-fg-muted uppercase tracking-wider mb-2">Phone Number</label>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Phone Number</label>
                       <input
                         type="tel"
                         value={leadForm.phone}
                         onChange={(e) => setLeadForm({ ...leadForm, phone: e.target.value })}
                         required
-                        className="w-full bg-bg-elevated border border-border rounded-lg px-4 py-2.5 text-fg text-sm focus:outline-none focus:ring-1 focus:ring-accent"
+                        className="w-full bg-[#020617] border border-white/5 rounded-xl px-4 py-2.5 text-white text-xs focus:border-cyan-400 outline-none"
                         placeholder="+91 99999 99999"
                       />
                     </div>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="sm:col-span-2">
-                      <label className="block text-xs font-bold text-fg-muted uppercase tracking-wider mb-2">Corporate Email</label>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Corporate Email</label>
                       <input
                         type="email"
                         value={leadForm.email}
                         onChange={(e) => setLeadForm({ ...leadForm, email: e.target.value })}
                         required
-                        className="w-full bg-bg-elevated border border-border rounded-lg px-4 py-2.5 text-fg text-sm focus:outline-none focus:ring-1 focus:ring-accent"
+                        className="w-full bg-[#020617] border border-white/5 rounded-xl px-4 py-2.5 text-white text-xs focus:border-cyan-400 outline-none"
                         placeholder="john@company.com"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-fg-muted uppercase tracking-wider mb-2">Monthly Volume (Tons)</label>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Monthly Tonnage</label>
                       <select
                         value={leadForm.volume}
                         onChange={(e) => setLeadForm({ ...leadForm, volume: e.target.value })}
-                        className="w-full bg-bg-elevated border border-border rounded-lg px-4 py-2.5 text-fg text-sm focus:outline-none focus:ring-1 focus:ring-accent"
+                        className="w-full bg-[#020617] border border-white/5 rounded-xl px-4 py-2.5 text-white text-xs focus:border-cyan-400 outline-none"
                       >
                         <option value="1-5">1-5 Tons</option>
                         <option value="5-20">5-20 Tons</option>
@@ -525,11 +656,9 @@ export default function Home() {
                   <button
                     type="submit"
                     disabled={leadLoading}
-                    className={`px-6 py-3 text-white text-xs font-bold uppercase tracking-wider rounded-lg transition-colors shadow-sm ${
-                      leadLoading ? 'bg-accent/50 cursor-not-allowed' : 'bg-accent hover:bg-accent-hover cursor-pointer'
-                    }`}
+                    className="px-6 py-3.5 bg-gradient-accent text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:scale-102 transition-all cursor-pointer shadow-md"
                   >
-                    {leadLoading ? 'Submitting...' : 'Submit Booking Request'}
+                    {leadLoading ? 'Submitting...' : 'Dispatch Request'}
                   </button>
                 </form>
               )}
@@ -538,259 +667,195 @@ export default function Home() {
         </section>
       )}
 
-      {/* 6. Benefits (3-column grid) */}
-      <section id="benefits" className="py-20 px-4 sm:px-6 lg:px-8 border-b border-border bg-bg-elevated/10">
+      {/* 6. Editorial Comparison Table */}
+      <section className="relative py-28 px-6 border-t border-white/5 bg-[#020617]/95 z-10">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Engineered for Logistics Precision</h2>
-            <p className="text-fg-muted text-sm max-w-2xl mx-auto">
-              Our calculator uses official mapping databases and structural algorithms to remove estimates and hidden pricing variables.
-            </p>
+          <div className="text-center mb-20 space-y-4">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-violet-400 font-mono">Market Benchmarks</span>
+            <h2 className="text-3xl font-light text-white tracking-tight">Structured Performance Comparison</h2>
+            <p className="text-xs text-slate-400 max-w-md mx-auto">Why enterprise supply chains transition their calculations to our logic.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {BENEFITS.map((benefit, idx) => {
-              const Icon = benefit.icon;
-              return (
-                <div key={idx} className="bg-card-custom border border-border p-6 rounded-xl space-y-4">
-                  <div className="w-10 h-10 rounded-lg bg-accent-soft flex items-center justify-center text-accent">
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <h3 className="font-bold text-lg text-fg">{benefit.title}</h3>
-                  <p className="text-sm text-fg-muted leading-relaxed">{benefit.desc}</p>
+
+          <div className="overflow-x-auto bg-glass rounded-organic-2 p-8">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-white/5 text-[9px] uppercase font-bold text-slate-400 tracking-wider">
+                  <th className="px-6 py-4">Capability</th>
+                  <th className="px-6 py-4 text-cyan-400">Freight Intelligence</th>
+                  <th className="px-6 py-4">Traditional Broker</th>
+                  <th className="px-6 py-4">Digital Marketplaces</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/5 text-xs font-mono text-slate-300">
+                <tr className="hover:bg-white/[0.02] transition-colors">
+                  <td className="px-6 py-4 font-bold text-white">19k+ Pincode Matrix</td>
+                  <td className="px-6 py-4 text-cyan-400 font-bold flex items-center gap-1.5"><Check className="w-3.5 h-3.5" /> Full Enriched</td>
+                  <td className="px-6 py-4">Zone-level estimates</td>
+                  <td className="px-6 py-4">Partial lookup</td>
+                </tr>
+                <tr className="hover:bg-white/[0.02] transition-colors">
+                  <td className="px-6 py-4 font-bold text-white">Exact NHAI Toll Plazas</td>
+                  <td className="px-6 py-4 text-cyan-400 font-bold flex items-center gap-1.5"><Check className="w-3.5 h-3.5" /> GPS Verified</td>
+                  <td className="px-6 py-4">Estimated average</td>
+                  <td className="px-6 py-4">Excluded</td>
+                </tr>
+                <tr className="hover:bg-white/[0.02] transition-colors">
+                  <td className="px-6 py-4 font-bold text-white">Modes Supported</td>
+                  <td className="px-6 py-4 text-cyan-400 font-bold flex items-center gap-1.5"><Check className="w-3.5 h-3.5" /> Road, Air, Sea, Rail</td>
+                  <td className="px-6 py-4">Road Only</td>
+                  <td className="px-6 py-4">Road Only</td>
+                </tr>
+                <tr className="hover:bg-white/[0.02] transition-colors">
+                  <td className="px-6 py-4 font-bold text-white">Competitor Benchmarks</td>
+                  <td className="px-6 py-4 text-cyan-400 font-bold flex items-center gap-1.5"><Check className="w-3.5 h-3.5" /> Real-time feed</td>
+                  <td className="px-6 py-4">No visibility</td>
+                  <td className="px-6 py-4">No transparency</td>
+                </tr>
+                <tr className="hover:bg-white/[0.02] transition-colors">
+                  <td className="px-6 py-4 font-bold text-white">Structured API Logs</td>
+                  <td className="px-6 py-4 text-cyan-400 font-bold flex items-center gap-1.5"><Check className="w-3.5 h-3.5" /> JSON Out-of-box</td>
+                  <td className="px-6 py-4">Emails / PDF only</td>
+                  <td className="px-6 py-4">Web view only</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. Amorphous Pricing Blobs */}
+      <section id="pricing" className="relative py-28 px-6 border-t border-white/5 bg-[#020617] z-10">
+        <div className="max-w-7xl mx-auto">
+          
+          <div className="text-center mb-20 space-y-4">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-cyan-400">Licensing Tiers</span>
+            <h2 className="text-3xl font-light text-white tracking-tight">Structured Subscriptions</h2>
+            <p className="text-xs text-slate-400">Transparent packages fitted to shipper operational volume.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto items-stretch">
+            
+            {/* Free Blob */}
+            <div className="bg-glass rounded-organic-1 p-8 flex flex-col justify-between hover:scale-103 hover:shadow-2xl hover:shadow-cyan-500/5 transition-all duration-300 relative">
+              <div className="space-y-6">
+                <h3 className="text-lg font-bold text-white">Free Access</h3>
+                <p className="text-xs text-slate-400">Essential querying for basic freight estimations.</p>
+                <div className="py-4">
+                  <span className="text-4xl font-extrabold text-white font-mono">₹0</span>
+                  <span className="text-xs text-slate-500">/month</span>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* 7. Features (icon + title + desc, 4-column grid) */}
-      <section id="features" className="py-20 px-4 sm:px-6 lg:px-8 border-b border-border">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <div className="lg:col-span-1 space-y-4">
-              <h2 className="text-3xl font-bold tracking-tight">Technical Features</h2>
-              <p className="text-sm text-fg-muted leading-relaxed">
-                Unlock next-level capabilities with our unified API, smart parameters, and database integrations.
-              </p>
-            </div>
-            <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-8">
-              {FEATURES.map((feature, idx) => {
-                const Icon = feature.icon;
-                return (
-                  <div key={idx} className="bg-bg-elevated/40 border border-border p-6 rounded-xl space-y-3">
-                    <Icon className="w-5 h-5 text-accent" />
-                    <h3 className="font-bold text-md text-fg">{feature.title}</h3>
-                    <p className="text-sm text-fg-muted leading-relaxed">{feature.desc}</p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 8. Comparison Table (You vs Competitors) */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 border-b border-border bg-bg-elevated/10">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">How We Compare</h2>
-            <p className="text-fg-muted text-sm">
-              We focus purely on exact routing calculations and official fee schedules.
-            </p>
-          </div>
-          <div className="bg-card-custom border border-border rounded-xl overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm divide-y divide-border">
-                <thead className="bg-bg/20 text-xs font-bold uppercase tracking-wider text-fg-muted">
-                  <tr>
-                    <th className="px-6 py-4">Capability</th>
-                    <th className="px-6 py-4 text-accent">FreightQuote</th>
-                    <th className="px-6 py-4">Other Services</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border text-fg-muted font-medium">
-                  <tr>
-                    <td className="px-6 py-4 font-semibold text-fg">Pincode Autocomplete</td>
-                    <td className="px-6 py-4 text-success flex items-center gap-2"><Check className="w-4 h-4" /> 19,277 Locations</td>
-                    <td className="px-6 py-4">City-Level Only</td>
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 font-semibold text-fg">NHAI Toll Rates</td>
-                    <td className="px-6 py-4 text-success flex items-center gap-2"><Check className="w-4 h-4" /> GPS Router Matched</td>
-                    <td className="px-6 py-4">Manual Estimates</td>
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 font-semibold text-fg">Multi-Modal Calculations</td>
-                    <td className="px-6 py-4 text-success flex items-center gap-2"><Check className="w-4 h-4" /> Road / Air / Sea / Rail</td>
-                    <td className="px-6 py-4">Single Mode Only</td>
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 font-semibold text-fg">Reports & Exports</td>
-                    <td className="px-6 py-4 text-success flex items-center gap-2"><Check className="w-4 h-4" /> PDF, XLS, CSV, JSON</td>
-                    <td className="px-6 py-4">Screenshots Only</td>
-                  </tr>
-                  <tr>
-                    <td className="px-6 py-4 font-semibold text-fg">REST API Integrations</td>
-                    <td className="px-6 py-4 text-success flex items-center gap-2"><Check className="w-4 h-4" /> Out-of-the-box</td>
-                    <td className="px-6 py-4">Not Available</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* 9. Pricing */}
-      <section id="pricing" className="py-20 px-4 sm:px-6 lg:px-8 border-b border-border">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Flexible Subscription Tiers</h2>
-            <p className="text-fg-muted text-sm">Transparent monthly packages with no contract commitments.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {PRICING.map((plan, idx) => (
-              <div 
-                key={idx} 
-                className={`bg-card-custom border rounded-2xl p-6 sm:p-8 flex flex-col justify-between shadow-sm relative ${
-                  plan.highlight ? 'border-accent ring-1 ring-accent' : 'border-border'
-                }`}
-              >
-                {plan.highlight && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-accent text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow">
-                    Most Popular
-                  </span>
-                )}
-                <div>
-                  <h3 className="text-lg font-bold text-fg">{plan.name}</h3>
-                  <p className="text-xs text-fg-muted mt-1 leading-relaxed">{plan.desc}</p>
-                  <div className="my-6">
-                    <span className="text-4xl font-extrabold text-fg">{plan.price}</span>
-                    <span className="text-xs text-fg-muted">{plan.period}</span>
-                  </div>
-                  <ul className="space-y-3 mb-8 text-sm text-fg-muted">
-                    {plan.features.map((feat, fidx) => (
-                      <li key={fidx} className="flex items-center gap-2.5">
-                        <Check className="w-4 h-4 text-accent flex-shrink-0" />
-                        <span>{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <a 
-                  href="#calculator"
-                  className={`w-full py-3 text-center text-xs font-bold uppercase tracking-wider rounded-lg transition-colors cursor-pointer block border ${
-                    plan.highlight 
-                      ? 'bg-accent text-white hover:bg-accent-hover border-accent' 
-                      : 'border-border text-fg hover:bg-bg-elevated'
-                  }`}
-                >
-                  {plan.cta}
-                </a>
+                <ul className="space-y-3 text-xs text-slate-400">
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-cyan-400" /> Unlimited Road FTL quotes</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-cyan-400" /> Pincode autocompletion</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-cyan-400" /> PDF reports export</li>
+                </ul>
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
+              <a href="#calculator" className="mt-8 w-full py-3 text-center text-xs font-bold uppercase tracking-wider rounded-xl border border-white/10 text-white hover:bg-white/5 transition-all">Get Started</a>
+            </div>
 
-      {/* 10. Testimonials */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 border-b border-border bg-bg-elevated/10">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Trusted by Industry Experts</h2>
-            <p className="text-fg-muted text-sm">Hear from freight managers and businesses scaling logistics operations in India.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {TESTIMONIALS.map((t, idx) => (
-              <div key={idx} className="bg-card-custom border border-border p-6 rounded-xl flex flex-col justify-between shadow-sm">
-                <p className="text-sm italic text-fg-muted leading-relaxed mb-6">&quot;{t.quote}&quot;</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-accent-soft text-accent flex items-center justify-center font-bold text-xs">
-                    {t.avatar}
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-fg">{t.name}</h4>
-                    <p className="text-[10px] text-fg-muted uppercase tracking-wider">{t.role}, {t.company}</p>
-                  </div>
+            {/* Pro Blob */}
+            <div className="bg-glass rounded-organic-2 p-8 flex flex-col justify-between hover:scale-103 hover:shadow-2xl hover:shadow-violet-500/5 transition-all duration-300 relative border border-cyan-500/30">
+              <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-accent text-white px-3 py-1 rounded-full text-[9px] font-bold uppercase tracking-wider shadow animate-bounce">Most Popular</span>
+              <div className="space-y-6">
+                <h3 className="text-lg font-bold text-white">Professional</h3>
+                <p className="text-xs text-slate-400">For logistics managers and growing trade operations.</p>
+                <div className="py-4">
+                  <span className="text-4xl font-extrabold text-white font-mono">₹999</span>
+                  <span className="text-xs text-slate-500">/month</span>
                 </div>
+                <ul className="space-y-3 text-xs text-slate-400">
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-cyan-400" /> Everything in Free</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-cyan-400" /> Competitor price benchmarks</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-cyan-400" /> Excel & JSON export formats</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-cyan-400" /> Advanced toll coordinates</li>
+                </ul>
               </div>
-            ))}
+              <a href="#calculator" className="mt-8 w-full py-3 text-center text-xs font-bold uppercase tracking-wider rounded-xl bg-gradient-accent text-white hover:opacity-90 transition-all shadow-lg shadow-cyan-500/10">Upgrade to Pro</a>
+            </div>
+
+            {/* Enterprise Blob */}
+            <div className="bg-glass rounded-organic-3 p-8 flex flex-col justify-between hover:scale-103 hover:shadow-2xl hover:shadow-indigo-500/5 transition-all duration-300 relative">
+              <div className="space-y-6">
+                <h3 className="text-lg font-bold text-white">Enterprise</h3>
+                <p className="text-xs text-slate-400">For active freight forwarders and ERP workflows.</p>
+                <div className="py-4">
+                  <span className="text-4xl font-extrabold text-white font-mono">₹2,999</span>
+                  <span className="text-xs text-slate-500">/month</span>
+                </div>
+                <ul className="space-y-3 text-xs text-slate-400">
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-cyan-400" /> Everything in Pro</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-cyan-400" /> Air, Sea & Rail engines</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-cyan-400" /> Incoterms & custom containers</li>
+                  <li className="flex items-center gap-2"><Check className="w-4 h-4 text-cyan-400" /> Dedicated SLA support</li>
+                </ul>
+              </div>
+              <a href="#calculator" className="mt-8 w-full py-3 text-center text-xs font-bold uppercase tracking-wider rounded-xl border border-white/10 text-white hover:bg-white/5 transition-all">Contact Sales</a>
+            </div>
+
           </div>
         </div>
       </section>
 
-      {/* 11. Integrations */}
-      <section className="py-16 px-4 bg-bg-elevated/20 border-b border-border">
-        <div className="max-w-7xl mx-auto text-center">
-          <h3 className="text-xs uppercase font-bold text-fg-muted tracking-widest mb-8">Supported ERP & App Integrations</h3>
-          <div className="flex flex-wrap justify-center gap-6 md:gap-10 text-fg-muted font-mono font-bold text-sm">
-            <span>SAP ERP</span>
-            <span>Oracle NetSuite</span>
-            <span>Tally ERP</span>
-            <span>Shiprocket</span>
-            <span>Delhivery API</span>
-            <span>WhatsApp Business</span>
-          </div>
-        </div>
-      </section>
-
-      {/* 12. FAQ (Accordion) */}
-      <section id="faq" className="py-20 px-4 sm:px-6 lg:px-8 border-b border-border">
+      {/* 8. FAQ */}
+      <section id="faq" className="relative py-28 px-6 border-t border-white/5 bg-[#020617]/95 z-10">
         <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Frequently Asked Questions</h2>
-            <p className="text-fg-muted text-sm">Everything you need to know about the FreightQuote calculations.</p>
+          <div className="text-center mb-20 space-y-4">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-cyan-400 font-mono">Platform Documentation</span>
+            <h2 className="text-3xl font-light text-white tracking-tight">Technical Explanations</h2>
+            <p className="text-xs text-slate-400">Structural details of calculations and rates algorithms.</p>
           </div>
+
           <div className="space-y-4">
             {[
-              { q: "How accurate are the toll calculations?", a: "We match your route geometry to NHAI toll plaza coordinates (using a 2km search radius) and apply official rates per vehicle axle class. Road FTL confidence: 97%." },
-              { q: "What parameters are used for Air Freight?", a: "We resolve the closest domestic airports from origin and destination pincodes using a great circle formula. Tariff rates are computed on chargeable weight using volumetric conversion metrics (1 CBM = 167 kg)." },
-              { q: "What types of ocean containers are supported?", a: "We support standard 20ft GP, 40ft GP, 40ft HC and refrigerated Reefer variants (20ft RF, 40ft RF) for domestic sea transport matching ports like JNPT and Chennai." },
-              { q: "How are Rail wagon estimates structured?", a: "We map consignments to nearest Inland Container Depots (ICD) and match cargo commodities to box classifications (BOXN open, BCN covered, BTPN tanker) using standard IRCTC freight haulage tariffs." },
-              { q: "Is my corporate data protected?", a: "Yes, all calculation logic runs via secure sandboxed API endpoints. We restrict access via tailed tailscale network overlays or VPN basic auth middleware configs." },
-              { q: "Can I integrate quotes in our accounting systems?", a: "Absolutely. Pro and Enterprise tiers expose REST endpoints. You can export quotes directly to PDF reports, Excel spreadsheets, CSV data tables, or raw JSON formats." }
-            ].map((faq, idx) => {
-              const isOpen = faqOpen === idx;
-              return (
-                <div key={idx} className="bg-bg-elevated/40 border border-border rounded-xl overflow-hidden transition-all">
-                  <button
-                    type="button"
-                    onClick={() => toggleFaq(idx)}
-                    className="w-full flex items-center justify-between px-6 py-4 text-left font-bold text-sm text-fg hover:text-accent transition-colors cursor-pointer"
-                  >
-                    <span>{faq.q}</span>
-                    {isOpen ? <ChevronUp className="w-4 h-4 text-accent" /> : <ChevronDown className="w-4 h-4" />}
-                  </button>
-                  {isOpen && (
-                    <div className="px-6 pb-4 text-sm text-fg-muted leading-relaxed font-sans border-t border-border/30 pt-3">
-                      {faq.a}
-                    </div>
-                  )}
+              {
+                q: "How accurate are the toll calculations?",
+                a: "Our toll calculations query the official NHAI toll plaza coordinate matrix. Calculations are verified per vehicle class (2-axle, 3-axle, 4-6 axle) and updated quarterly. Accuracy averages 97%+ on primary national corridors."
+              },
+              {
+                q: "What parameters govern Air Freight?",
+                a: "Air freight estimates calculate chargeable weight (based on actual weight vs volumetric size at 167 kg/CBM), fuel indices, terminal fees, and ground handling clearances."
+              },
+              {
+                q: "What ocean cargo dimensions are supported?",
+                a: "We support 20ft GP, 40ft GP, 40ft HC (High Cube), and Reefer containers. Incoterms supported: EXW, FOB, CIF, CFR."
+              },
+              {
+                q: "How are Rail wagon estimations built?",
+                a: "Rail rates map directly to official IRCTC haulage tariffs for BCN, BOXN, and BTPN container classes, adding drayage and first/last mile transfers."
+              }
+            ].map((faq, index) => (
+              <details key={index} className="bg-glass rounded-xl overflow-hidden transition-all group border border-white/5">
+                <summary className="w-full flex items-center justify-between px-6 py-5 text-left font-bold text-xs uppercase tracking-wider text-white hover:text-cyan-400 transition-colors cursor-pointer list-none">
+                  {faq.q}
+                  <ChevronDown className="w-4 h-4 transition-transform group-open:rotate-180 text-slate-400" />
+                </summary>
+                <div className="px-6 pb-5 text-xs text-slate-400 leading-relaxed border-t border-white/5 pt-4 select-text">
+                  {faq.a}
                 </div>
-              );
-            })}
+              </details>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* 13. Footer */}
-      <footer className="py-12 px-4 sm:px-6 lg:px-8 bg-bg-elevated/10">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between border-t border-border/50 pt-8 text-xs text-fg-muted">
-          <div className="flex items-center gap-2 mb-4 md:mb-0">
-            <Truck className="w-4 h-4 text-accent" />
-            <span className="font-bold font-mono">FreightQuote.in</span>
+      {/* 9. Minimal Footer */}
+      <footer className="relative py-16 px-6 border-t border-white/5 bg-[#020617] z-10">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+          <div className="flex items-center gap-2">
+            <Truck className="w-4 h-4 text-cyan-400" />
+            <span className="font-bold text-white font-mono">FreightQuote.in</span>
           </div>
-          <div className="flex gap-6 mb-4 md:mb-0">
-            <a href="#calculator" className="hover:text-fg transition-colors">Calculator</a>
-            <a href="#features" className="hover:text-fg transition-colors">Features</a>
-            <a href="#pricing" className="hover:text-fg transition-colors">Pricing</a>
-            <a href="#faq" className="hover:text-fg transition-colors">FAQ</a>
+          <div className="flex gap-8">
+            <a href="#calculator" className="hover:text-white transition-colors">Calculator</a>
+            <a href="#features" className="hover:text-white transition-colors">Features</a>
+            <a href="#pricing" className="hover:text-white transition-colors">Licensing</a>
+            <a href="#faq" className="hover:text-white transition-colors">Documentation</a>
           </div>
-          <span>&copy; {new Date().getFullYear()} FreightQuote India. Private enterprise logistics system. All rights reserved.</span>
+          <span className="font-mono text-[9px] text-slate-600 tracking-tight select-text">
+            &copy; 2026 FreightQuote India. Enriched supply chain logistics control system.
+          </span>
         </div>
       </footer>
-
     </div>
   );
 }

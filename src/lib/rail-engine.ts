@@ -82,7 +82,7 @@ export async function calculateRail(input: QuoteInput): Promise<QuoteResult> {
   let wagonType = 'BCN Covered Wagon';
   let tonRate = 2.5; // rate in ₹/ton-km
   
-  if (input.commodity === 'steel' || input.commodity === 'steel-cement' || input.commodity === 'machinery' || input.commodity === 'odc') {
+  if (input.commodity === 'steel' || input.commodity === 'machinery' || input.commodity === 'odc') {
     wagonType = 'BOXN Open Wagon';
     tonRate = 2.1;
   } else if (input.commodity === 'chemicals' || input.commodity === 'hazardous') {
