@@ -6,6 +6,7 @@ export function middleware(request: NextRequest) {
 
   // Exclude login page, quote API, Next.js internal files, and public assets
   if (
+    pathname === '/' ||
     pathname === '/login' ||
     pathname.startsWith('/api/quote') ||
     pathname.startsWith('/_next') ||
@@ -15,7 +16,13 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const authHeader = request.headers.get('authorization');
+  let authHeader = request.headers.get('authorization');
+  if (!authHeader) {
+    const authCookie = request.cookies.get('auth');
+    if (authCookie) {
+      authHeader = authCookie.value;
+    }
+  }
   
   const user = process.env.PRIVATE_USER || 'admin';
   const pass = process.env.PRIVATE_PASS || 'admin123';
@@ -24,6 +31,14 @@ export function middleware(request: NextRequest) {
   const expectedAuth = 'Basic ' + btoa(`${user}:${pass}`);
 
   if (!authHeader || authHeader !== expectedAuth) {
+    // If request is from browser navigation, redirect to /login
+    // Otherwise, return 401 basic auth challenge
+    const acceptHeader = request.headers.get('accept') || '';
+    if (acceptHeader.includes('text/html')) {
+      const url = request.nextUrl.clone();
+      url.pathname = '/login';
+      return NextResponse.redirect(url);
+    }
     return new NextResponse('Unauthorized', {
       status: 401,
       headers: {
