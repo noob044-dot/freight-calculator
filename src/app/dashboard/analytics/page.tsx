@@ -4,8 +4,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Building2, TrendingUp, DollarSign, Activity, 
-  Map, Calendar, BarChart3, FileSpreadsheet, AlertCircle, 
-  ArrowRight, ShieldAlert, Check, HelpCircle, Loader2, ArrowLeftRight
+  Map, BarChart3, FileSpreadsheet, AlertCircle, 
+  ArrowRight, ShieldAlert, Check, Loader2
 } from 'lucide-react';
 import Link from 'next/link';
 import {
@@ -104,7 +104,7 @@ export default function AnalyticsPage() {
   const [weightKg, setWeightKg] = useState(5000);
   const [month, setMonth] = useState(6);
 
-  const [predLoading, setPredLoading] = useState(false);
+
   const [predictionResult, setPredictionResult] = useState<{
     prediction: {
       lane: string;
@@ -158,7 +158,6 @@ export default function AnalyticsPage() {
   // Update linear regression pricing output on slider / parameters shift
   useEffect(() => {
     const fetchPrediction = async () => {
-      setPredLoading(true);
       try {
         const authHeader = 'Basic ' + btoa('admin:admin123');
         const query = new URLSearchParams({
@@ -176,8 +175,6 @@ export default function AnalyticsPage() {
         }
       } catch (err) {
         console.error('Prediction failed', err);
-      } finally {
-        setPredLoading(false);
       }
     };
 
@@ -244,7 +241,7 @@ export default function AnalyticsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#020617] text-white flex items-center justify-center">
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-10 h-10 text-cyan-400 animate-spin" />
           <p className="text-sm text-slate-400 font-mono">Loading Analytics ledger...</p>
@@ -254,10 +251,10 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#020617] text-white font-sans pb-12 overflow-hidden">
+    <div className="min-h-screen bg-black text-white font-sans pb-12 overflow-hidden">
       
       {/* Top Navbar Header */}
-      <nav className="border-b border-white/5 bg-[#030712]/40 backdrop-blur-md sticky top-0 z-40">
+      <nav className="border-b border-white/5 bg-black/40 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
@@ -361,7 +358,7 @@ export default function AnalyticsPage() {
                       <XAxis dataKey="month" stroke="#475569" fontSize={10} />
                       <YAxis stroke="#475569" fontSize={10} tickFormatter={(v) => `₹${v/1000}k`} />
                       <Tooltip 
-                        contentStyle={{ backgroundColor: '#020617', borderColor: 'rgba(255,255,255,0.05)', color: '#f8fafc' }}
+                        contentStyle={{ backgroundColor: '#000000', borderColor: 'rgba(255,255,255,0.05)', color: '#f8fafc' }}
                         formatter={(value) => [`₹${Number(value).toLocaleString('en-IN')}`, '']}
                       />
                       <Legend />
@@ -388,7 +385,7 @@ export default function AnalyticsPage() {
                       <XAxis dataKey="month" stroke="#475569" fontSize={10} />
                       <YAxis stroke="#475569" fontSize={10} tickFormatter={(v) => `₹${v/1000}k`} />
                       <Tooltip 
-                        contentStyle={{ backgroundColor: '#020617', borderColor: 'rgba(255,255,255,0.05)', color: '#f8fafc' }}
+                        contentStyle={{ backgroundColor: '#000000', borderColor: 'rgba(255,255,255,0.05)', color: '#f8fafc' }}
                         formatter={(value) => [`₹${Number(value).toLocaleString('en-IN')}`, '']}
                       />
                       <Legend />
@@ -407,7 +404,7 @@ export default function AnalyticsPage() {
                       <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                       <XAxis dataKey="month" stroke="#475569" fontSize={10} />
                       <YAxis stroke="#475569" fontSize={10} />
-                      <Tooltip contentStyle={{ backgroundColor: '#020617', borderColor: 'rgba(255,255,255,0.05)', color: '#f8fafc' }} />
+                      <Tooltip contentStyle={{ backgroundColor: '#000000', borderColor: 'rgba(255,255,255,0.05)', color: '#f8fafc' }} />
                       <Legend />
                       <Area type="monotone" dataKey="volume" name="Shipments" stroke="#10b981" fill="rgba(16,185,129,0.08)" strokeWidth={2.5} />
                     </AreaChart>
@@ -434,7 +431,7 @@ export default function AnalyticsPage() {
                       <XAxis dataKey="name" stroke="#475569" fontSize={10} />
                       <YAxis stroke="#475569" fontSize={10} tickFormatter={(v) => `₹${v}`} />
                       <Tooltip 
-                        contentStyle={{ backgroundColor: '#020617', borderColor: 'rgba(255,255,255,0.05)', color: '#f8fafc' }}
+                        contentStyle={{ backgroundColor: '#000000', borderColor: 'rgba(255,255,255,0.05)', color: '#f8fafc' }}
                         formatter={(value) => [`₹${Number(value).toLocaleString('en-IN')}`, '']}
                       />
                       <Bar dataKey="value" fill="#22d3ee" radius={[4, 4, 0, 0]}>
@@ -458,7 +455,7 @@ export default function AnalyticsPage() {
                       <XAxis dataKey="month" stroke="#475569" fontSize={10} />
                       <YAxis stroke="#475569" fontSize={10} tickFormatter={(v) => `₹${v/1000}k`} />
                       <Tooltip 
-                        contentStyle={{ backgroundColor: '#020617', borderColor: 'rgba(255,255,255,0.05)', color: '#f8fafc' }}
+                        contentStyle={{ backgroundColor: '#000000', borderColor: 'rgba(255,255,255,0.05)', color: '#f8fafc' }}
                         formatter={(value) => [`₹${Number(value).toLocaleString('en-IN')}`, '']}
                       />
                       <Legend />
@@ -525,7 +522,7 @@ export default function AnalyticsPage() {
                   <select
                     value={originState}
                     onChange={(e) => setOriginState(e.target.value)}
-                    className="w-full bg-[#020617] border border-white/5 rounded-xl px-3 py-2 text-white text-xs outline-none focus:border-cyan-400"
+                    className="w-full bg-black border border-white/5 rounded-xl px-3 py-2 text-white text-xs outline-none focus:border-cyan-400"
                   >
                     {STATES.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
@@ -536,7 +533,7 @@ export default function AnalyticsPage() {
                   <select
                     value={destState}
                     onChange={(e) => setDestState(e.target.value)}
-                    className="w-full bg-[#020617] border border-white/5 rounded-xl px-3 py-2 text-white text-xs outline-none focus:border-cyan-400"
+                    className="w-full bg-black border border-white/5 rounded-xl px-3 py-2 text-white text-xs outline-none focus:border-cyan-400"
                   >
                     {STATES.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
@@ -547,7 +544,7 @@ export default function AnalyticsPage() {
                   <select
                     value={mode}
                     onChange={(e) => setMode(e.target.value)}
-                    className="w-full bg-[#020617] border border-white/5 rounded-xl px-3 py-2 text-white text-xs outline-none focus:border-cyan-400"
+                    className="w-full bg-black border border-white/5 rounded-xl px-3 py-2 text-white text-xs outline-none focus:border-cyan-400"
                   >
                     {MODES.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
                   </select>
@@ -654,7 +651,7 @@ export default function AnalyticsPage() {
                           <XAxis dataKey="month" stroke="#475569" fontSize={10} />
                           <YAxis stroke="#475569" fontSize={10} tickFormatter={(v) => `₹${v/1000}k`} />
                           <Tooltip 
-                            contentStyle={{ backgroundColor: '#020617', borderColor: 'rgba(255,255,255,0.05)', color: '#f8fafc' }}
+                            contentStyle={{ backgroundColor: '#000000', borderColor: 'rgba(255,255,255,0.05)', color: '#f8fafc' }}
                             formatter={(value) => [`₹${Number(value).toLocaleString('en-IN')}`, '']}
                           />
                           <Legend />

@@ -3,8 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { 
-  Building2, Check, X, FileText, Users, 
-  DollarSign, ArrowRight, AlertCircle, ThumbsUp, 
+  Building2, ArrowRight, AlertCircle, ThumbsUp, 
   Download, CreditCard, Plus, Edit2, Trash2, ChevronLeft,
   ChevronRight, LayoutGrid, Settings, FileSpreadsheet, Loader2
 } from 'lucide-react';
@@ -349,7 +348,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#020617] text-white flex items-center justify-center">
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-10 h-10 text-cyan-400 animate-spin" />
           <p className="text-sm text-slate-400 font-mono">Loading Command Center...</p>
@@ -359,11 +358,11 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#020617] text-[#f8fafc] flex font-sans antialiased overflow-hidden">
+    <div className="min-h-screen bg-black text-[#f8fafc] flex font-sans antialiased overflow-hidden">
       
       {/* Sidebar (collapsible spring) */}
       <aside 
-        className="bg-[#030712] border-r border-white/5 flex flex-col justify-between transition-all duration-300 z-30"
+        className="bg-black border-r border-white/5 flex flex-col justify-between transition-all duration-300 z-30"
         style={{ width: isSidebarExpanded ? '260px' : '72px' }}
       >
         <div className="space-y-8 py-6">
@@ -482,7 +481,7 @@ export default function DashboardPage() {
                 <select
                   value={selectedForwarderId}
                   onChange={(e) => setSelectedForwarderId(e.target.value)}
-                  className="bg-[#020617] border border-white/5 rounded-xl px-3 py-1.5 text-xs text-white outline-none"
+                  className="bg-black border border-white/5 rounded-xl px-3 py-1.5 text-xs text-white outline-none"
                 >
                   {forwarders.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
                 </select>
@@ -568,7 +567,7 @@ export default function DashboardPage() {
                           return (
                             <div 
                               key={lead.id} 
-                              className={`p-4 bg-[#020617] border rounded-xl space-y-3 transition-all hover:scale-[1.02] hover:-translate-y-1 ${
+                              className={`p-4 bg-black border rounded-xl space-y-3 transition-all hover:scale-[1.02] hover:-translate-y-1 ${
                                 hasSlaBreach ? 'border-rose-600/40 shadow-lg shadow-rose-500/5' : 'border-white/5 hover:border-cyan-400/30'
                               }`}
                             >
@@ -620,7 +619,7 @@ export default function DashboardPage() {
                       
                       <div className="space-y-3 flex-1 overflow-y-auto max-h-[500px]">
                         {leads.filter(l => l.status === 'Contacted').map(lead => (
-                          <div key={lead.id} className="p-4 bg-[#020617] border border-white/5 rounded-xl space-y-3 hover:border-cyan-400/30 transition-all">
+                          <div key={lead.id} className="p-4 bg-black border border-white/5 rounded-xl space-y-3 hover:border-cyan-400/30 transition-all">
                             <h4 className="text-xs font-bold text-white leading-tight">{lead.company}</h4>
                             <div className="text-[10px] text-slate-500 font-mono">Weight: {lead.weightKg} kg | Mode: {lead.mode.toUpperCase()}</div>
                             
@@ -652,7 +651,7 @@ export default function DashboardPage() {
                       
                       <div className="space-y-3 flex-1 overflow-y-auto max-h-[500px]">
                         {leads.filter(l => l.status === 'Quoted').map(lead => (
-                          <div key={lead.id} className="p-4 bg-[#020617] border border-white/5 rounded-xl space-y-3 hover:border-cyan-400/30 transition-all">
+                          <div key={lead.id} className="p-4 bg-black border border-white/5 rounded-xl space-y-3 hover:border-cyan-400/30 transition-all">
                             <h4 className="text-xs font-bold text-white leading-tight">{lead.company}</h4>
                             <div className="text-[10px] text-slate-400">Total Bids Placed: <strong className="text-white">{lead.bids.length}</strong></div>
                             
@@ -701,7 +700,7 @@ export default function DashboardPage() {
                       
                       <div className="space-y-3 flex-1 overflow-y-auto max-h-[500px]">
                         {leads.filter(l => l.status === 'Won').map(lead => (
-                          <div key={lead.id} className="p-4 bg-[#020617] border border-emerald-500/20 rounded-xl space-y-3 hover:border-emerald-400/40 transition-all shadow-md shadow-emerald-500/5">
+                          <div key={lead.id} className="p-4 bg-black border border-emerald-500/20 rounded-xl space-y-3 hover:border-emerald-400/40 transition-all shadow-md shadow-emerald-500/5">
                             <h4 className="text-xs font-bold text-white leading-tight">{lead.company}</h4>
                             <div className="text-[10px] text-slate-500 font-mono">Lane: {lead.originState} &rarr; {lead.destState}</div>
                             <div className="text-[10px] text-emerald-400 font-bold flex items-center gap-1.5">
@@ -908,7 +907,7 @@ export default function DashboardPage() {
                             required
                             value={bidForm.amount}
                             onChange={(e) => setBidForm({ ...bidForm, amount: e.target.value })}
-                            className="w-full bg-[#020617] border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-cyan-400 font-mono"
+                            className="w-full bg-black border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-cyan-400 font-mono"
                             placeholder="e.g. 24000"
                           />
                         </div>
@@ -920,7 +919,7 @@ export default function DashboardPage() {
                             required
                             value={bidForm.transitDays}
                             onChange={(e) => setBidForm({ ...bidForm, transitDays: e.target.value })}
-                            className="w-full bg-[#020617] border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-cyan-400 font-mono"
+                            className="w-full bg-black border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-cyan-400 font-mono"
                             placeholder="e.g. 3"
                           />
                         </div>
@@ -931,7 +930,7 @@ export default function DashboardPage() {
                             value={bidForm.remarks}
                             onChange={(e) => setBidForm({ ...bidForm, remarks: e.target.value })}
                             rows={3}
-                            className="w-full bg-[#020617] border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-cyan-400"
+                            className="w-full bg-black border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-cyan-400"
                             placeholder="e.g. Blue Dart express service guarantee"
                           />
                         </div>
@@ -986,7 +985,7 @@ export default function DashboardPage() {
                           type="text"
                           value={newRate.originState}
                           onChange={(e) => setNewRate({ ...newRate, originState: e.target.value.toUpperCase() })}
-                          className="w-full bg-[#020617] border border-white/5 rounded-xl px-3 py-2 text-xs text-white outline-none"
+                          className="w-full bg-black border border-white/5 rounded-xl px-3 py-2 text-xs text-white outline-none"
                         />
                       </div>
                       <div>
@@ -995,7 +994,7 @@ export default function DashboardPage() {
                           type="text"
                           value={newRate.destState}
                           onChange={(e) => setNewRate({ ...newRate, destState: e.target.value.toUpperCase() })}
-                          className="w-full bg-[#020617] border border-white/5 rounded-xl px-3 py-2 text-xs text-white outline-none"
+                          className="w-full bg-black border border-white/5 rounded-xl px-3 py-2 text-xs text-white outline-none"
                         />
                       </div>
                       <div>
@@ -1004,7 +1003,7 @@ export default function DashboardPage() {
                           type="number"
                           value={newRate.basePrice}
                           onChange={(e) => setNewRate({ ...newRate, basePrice: Number(e.target.value) })}
-                          className="w-full bg-[#020617] border border-white/5 rounded-xl px-3 py-2 text-xs text-white outline-none font-mono"
+                          className="w-full bg-black border border-white/5 rounded-xl px-3 py-2 text-xs text-white outline-none font-mono"
                         />
                       </div>
                       <div>
@@ -1013,7 +1012,7 @@ export default function DashboardPage() {
                           type="number"
                           value={newRate.pricePerKg}
                           onChange={(e) => setNewRate({ ...newRate, pricePerKg: Number(e.target.value) })}
-                          className="w-full bg-[#020617] border border-white/5 rounded-xl px-3 py-2 text-xs text-white outline-none font-mono"
+                          className="w-full bg-black border border-white/5 rounded-xl px-3 py-2 text-xs text-white outline-none font-mono"
                         />
                       </div>
                       <div className="flex gap-2">
@@ -1065,7 +1064,7 @@ export default function DashboardPage() {
                                     type="number"
                                     value={tempBasePrice}
                                     onChange={(e) => setTempBasePrice(e.target.value)}
-                                    className="bg-[#020617] border border-white/10 rounded px-2 py-1 text-right text-xs text-white focus:border-cyan-400 outline-none w-24"
+                                    className="bg-black border border-white/10 rounded px-2 py-1 text-right text-xs text-white focus:border-cyan-400 outline-none w-24"
                                   />
                                 ) : (
                                   `INR ${rate.basePrice.toLocaleString('en-IN')}`
@@ -1077,7 +1076,7 @@ export default function DashboardPage() {
                                     type="number"
                                     value={tempPricePerKg}
                                     onChange={(e) => setTempPricePerKg(e.target.value)}
-                                    className="bg-[#020617] border border-white/10 rounded px-2 py-1 text-right text-xs text-white focus:border-cyan-400 outline-none w-20"
+                                    className="bg-black border border-white/10 rounded px-2 py-1 text-right text-xs text-white focus:border-cyan-400 outline-none w-20"
                                   />
                                 ) : (
                                   `INR ${rate.pricePerKg.toFixed(2)}`

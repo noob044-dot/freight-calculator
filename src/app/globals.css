@@ -1,8 +1,9 @@
+@import url('https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700,900&display=swap');
 @import "tailwindcss";
 
 :root {
-  --bg: #020617; /* Slate-950 base */
-  --bg-elevated: rgba(3, 7, 18, 0.6);
+  --bg: #000000; /* Pure Black base */
+  --bg-elevated: rgba(0, 0, 0, 0.6);
   --fg: #f8fafc; /* slate-50 primary text */
   --fg-muted: #94a3b8; /* slate-400 secondary */
   --fg-darker: #475569; /* slate-600 metadata */
@@ -15,7 +16,7 @@
   --warning: #d97706; /* amber-600 */
   --error: #dc2626; /* red-600 */
   
-  --font-sans: var(--font-sans), system-ui, -apple-system, sans-serif;
+  --font-sans: 'Satoshi', var(--font-sans), system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-mono), monospace;
 }
 
@@ -89,7 +90,7 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #020617;
+  background: #000000;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -102,7 +103,7 @@
 }
 
 body {
-  background-color: #020617;
+  background-color: #000000;
   color: #f8fafc;
   font-family: var(--font-sans);
   overflow-x: hidden;

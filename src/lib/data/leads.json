@@ -2167,8 +2167,8 @@
     "isHot": false,
     "leadCost": 500,
     "createdAt": "2026-06-01T10:00:00.000Z",
-    "status": "Quoted",
-    "assignedForwarderId": null,
+    "status": "Won",
+    "assignedForwarderId": "fwd-bluedart",
     "bids": [
       {
         "forwarderId": "fwd-safexpress",
@@ -2176,7 +2176,7 @@
         "amount": 18870,
         "transitDays": 4,
         "submittedAt": "2026-06-01T10:00:00.000Z",
-        "status": "Pending",
+        "status": "Rejected",
         "remarks": "Automated match system bid."
       },
       {
@@ -2185,7 +2185,7 @@
         "amount": 18870,
         "transitDays": 4,
         "submittedAt": "2026-06-01T10:00:00.000Z",
-        "status": "Pending",
+        "status": "Accepted",
         "remarks": "Automated match system bid."
       }
     ]

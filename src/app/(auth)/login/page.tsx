@@ -4,9 +4,8 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Building2, Mail, Lock, User, Briefcase, 
-  Eye, EyeOff, Loader2, Check, X, Shield, ArrowRight
+  Eye, EyeOff, Loader2, Check, Shield, ArrowRight
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { BackgroundThree } from '@/components/BackgroundThree';
 
 export default function LoginPage() {
@@ -72,10 +71,10 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#020617] text-white flex flex-col md:flex-row overflow-hidden">
+    <div className="relative min-h-screen bg-black text-white flex flex-col md:flex-row overflow-hidden">
       
       {/* LEFT SIDE: WebGL background + stats (60% desktop) */}
-      <div className="relative md:w-[60%] min-h-[40vh] md:min-h-screen flex flex-col justify-between p-8 md:p-16 border-r border-white/5 bg-[#020617] overflow-hidden">
+      <div className="relative md:w-[60%] min-h-[40vh] md:min-h-screen flex flex-col justify-between p-8 md:p-16 border-r border-white/5 bg-black overflow-hidden">
         
         {/* Three.js particles scene */}
         <BackgroundThree type="auth" />
@@ -181,7 +180,7 @@ export default function LoginPage() {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-[#020617] border border-white/5 rounded-xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:border-cyan-400 outline-none transition-all"
+                    className="w-full bg-black border border-white/5 rounded-xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:border-cyan-400 outline-none transition-all"
                     placeholder="Contact name"
                   />
                 </div>
@@ -192,7 +191,7 @@ export default function LoginPage() {
                     required
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
-                    className="w-full bg-[#020617] border border-white/5 rounded-xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:border-cyan-400 outline-none transition-all"
+                    className="w-full bg-black border border-white/5 rounded-xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:border-cyan-400 outline-none transition-all"
                     placeholder="Company name"
                   />
                 </div>
@@ -206,7 +205,7 @@ export default function LoginPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#020617] border border-white/5 rounded-xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:border-cyan-400 outline-none transition-all"
+                className="w-full bg-black border border-white/5 rounded-xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:border-cyan-400 outline-none transition-all"
                 placeholder="Corporate email address"
               />
             </div>
@@ -218,7 +217,7 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-[#020617] border border-white/5 rounded-xl pl-10 pr-10 py-3 text-xs text-white placeholder-slate-500 focus:border-cyan-400 outline-none transition-all"
+                className="w-full bg-black border border-white/5 rounded-xl pl-10 pr-10 py-3 text-xs text-white placeholder-slate-500 focus:border-cyan-400 outline-none transition-all"
                 placeholder="Password"
               />
               <button

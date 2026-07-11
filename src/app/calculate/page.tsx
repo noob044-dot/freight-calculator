@@ -1,15 +1,14 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  Building2, Truck, Shield, Zap, Check, X, Users, 
-  BarChart2, Calculator, CreditCard, ChevronDown, 
-  Globe, FileText, ArrowRight, HelpCircle, Copy, CheckSquare, 
-  MapPin, RefreshCw, Layers
+  X, Calculator, ChevronDown, 
+  ArrowRight, HelpCircle, Copy, CheckSquare, 
+  RefreshCw, Layers
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PincodeAutocomplete } from '@/components/PincodeAutocomplete';
-import { ModeSelector, TransportMode } from '@/components/ModeSelector';
+import { TransportMode } from '@/components/ModeSelector';
 import { QuoteResults } from '@/components/QuoteResults';
 import { SearchableCommodity } from '@/components/SearchableCommodity';
 import { QuoteResult, Benchmark } from '@/lib/types';
@@ -54,7 +53,7 @@ export default function CalculatePage() {
 
   // Cargo value & dimensions
   const [cargoValue, setCargoValue] = useState('');
-  const [dimUnit, setDimUnit] = useState<'cm' | 'm'>('cm');
+  const dimUnit = 'cm';
   const [dimensions, setDimensions] = useState({ length: '', width: '', height: '' });
 
   // Map Toggles
@@ -201,13 +200,13 @@ export default function CalculatePage() {
   const endCoords = getCoordinates(dest);
 
   return (
-    <div className="relative min-h-screen bg-[#020617] text-white overflow-hidden flex flex-col font-sans select-none">
+    <div className="relative min-h-screen bg-black text-white overflow-hidden flex flex-col font-sans select-none">
       
       {/* 3D WebGL Floor perspectives */}
       <BackgroundThree type="calculate" />
 
       {/* Top Navbar */}
-      <header className="h-16 border-b border-white/5 bg-[#020617]/50 backdrop-blur-md flex items-center justify-between px-6 z-20">
+      <header className="h-16 border-b border-white/5 bg-black/50 backdrop-blur-md flex items-center justify-between px-6 z-20">
         <div className="flex items-center gap-3">
           <div className="w-7 h-7 rounded-lg bg-gradient-accent flex items-center justify-center">
             <Calculator className="w-3.5 h-3.5 text-white" />
@@ -233,7 +232,7 @@ export default function CalculatePage() {
       <div className="flex-1 flex flex-col lg:flex-row items-stretch z-10 relative overflow-hidden h-[calc(100vh-64px)]">
         
         {/* ZONE 1 (LEFT 35%): Sticky Input Panel */}
-        <div className="lg:w-[35%] border-r border-white/5 bg-[#020617]/85 backdrop-blur-3xl overflow-y-auto p-8 space-y-6 flex flex-col justify-between">
+        <div className="lg:w-[35%] border-r border-white/5 bg-black/85 backdrop-blur-3xl overflow-y-auto p-8 space-y-6 flex flex-col justify-between">
           
           <div className="space-y-6">
             
@@ -284,7 +283,7 @@ export default function CalculatePage() {
                   type="number"
                   value={weight}
                   onChange={(e) => setWeight(e.target.value)}
-                  className="w-full bg-[#020617] border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:border-cyan-400 outline-none font-mono"
+                  className="w-full bg-black border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:border-cyan-400 outline-none font-mono"
                 />
               </div>
 
@@ -318,7 +317,7 @@ export default function CalculatePage() {
                           type="number"
                           value={cargoValue}
                           onChange={(e) => setCargoValue(e.target.value)}
-                          className="w-full bg-[#020617] border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-cyan-400 font-mono"
+                          className="w-full bg-black border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-cyan-400 font-mono"
                           placeholder="Insurance limit"
                         />
                       </div>
@@ -327,7 +326,7 @@ export default function CalculatePage() {
                         <select
                           value={incoterm}
                           onChange={(e) => setIncoterm(e.target.value)}
-                          className="w-full bg-[#020617] border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-cyan-400"
+                          className="w-full bg-black border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-cyan-400"
                         >
                           {INCOTERMS.map(inc => <option key={inc.code} value={inc.code}>{inc.name}</option>)}
                         </select>
@@ -340,7 +339,7 @@ export default function CalculatePage() {
                         <select
                           value={vehicle}
                           onChange={(e) => setVehicle(e.target.value)}
-                          className="w-full bg-[#020617] border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-cyan-400"
+                          className="w-full bg-black border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-cyan-400"
                         >
                           {VEHICLES.map(v => <option key={v.code} value={v.code}>{v.name}</option>)}
                         </select>
@@ -350,7 +349,7 @@ export default function CalculatePage() {
                         <select
                           value={containerType}
                           onChange={(e) => setContainerType(e.target.value)}
-                          className="w-full bg-[#020617] border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-cyan-400"
+                          className="w-full bg-black border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-cyan-400"
                         >
                           {CONTAINER_TYPES.map(ct => <option key={ct.code} value={ct.code}>{ct.name}</option>)}
                         </select>
@@ -538,7 +537,7 @@ export default function CalculatePage() {
         </div>
 
         {/* ZONE 3 (RIGHT 25%): Results Panel */}
-        <div className="lg:w-[25%] border-l border-white/5 bg-[#020617]/85 backdrop-blur-3xl overflow-y-auto p-6 space-y-6 flex flex-col justify-between">
+        <div className="lg:w-[25%] border-l border-white/5 bg-black/85 backdrop-blur-3xl overflow-y-auto p-6 space-y-6 flex flex-col justify-between">
           
           <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -623,7 +622,7 @@ export default function CalculatePage() {
               animate={{ scale: 1 }}
               exit={{ scale: 0.95 }}
               transition={springGentle}
-              className="bg-[#020617] border border-white/10 rounded-organic-2 p-8 max-w-sm w-full space-y-6 shadow-2xl"
+              className="bg-black border border-white/10 rounded-organic-2 p-8 max-w-sm w-full space-y-6 shadow-2xl"
             >
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-bold text-white font-display">Keyboard Control Center</h3>

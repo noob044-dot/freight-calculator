@@ -184,13 +184,13 @@ export default function Home() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#020617] text-[#f8fafc] font-sans antialiased overflow-hidden select-none">
+    <div className="relative min-h-screen bg-black text-[#f8fafc] font-sans antialiased overflow-hidden select-none">
       
       {/* Three.js Hero Canvas background */}
       <BackgroundThree type="hero" />
 
       {/* 1. Header/Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#020617]/40 backdrop-blur-md border-b border-white/5 transition-all">
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-black/45 backdrop-blur-md border-b border-white/5 transition-all">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center gap-3">
@@ -297,7 +297,7 @@ export default function Home() {
       </section>
 
       {/* 3. Features Section - Asymmetric Editorial Flow */}
-      <section id="features" className="relative py-28 px-6 border-t border-white/5 bg-[#020617]/80 z-10">
+      <section id="features" className="relative py-28 px-6 border-t border-white/5 bg-black/80 z-10">
         <div className="max-w-7xl mx-auto">
           
           <div className="max-w-xl mb-20 space-y-4">
@@ -371,7 +371,7 @@ export default function Home() {
       </section>
 
       {/* 4. Calculator Form Panel - The Embedded Preview */}
-      <section id="calculator" className="relative py-24 px-6 bg-[#020617]/90 z-10 border-t border-white/5">
+      <section id="calculator" className="relative py-24 px-6 bg-black/90 z-10 border-t border-white/5">
         <div className="max-w-4xl mx-auto">
           
           <div className="text-center mb-16 space-y-4">
@@ -724,7 +724,7 @@ export default function Home() {
       </section>
 
       {/* 7. Amorphous Pricing Blobs */}
-      <section id="pricing" className="relative py-28 px-6 border-t border-white/5 bg-[#020617] z-10">
+      <section id="pricing" className="relative py-28 px-6 border-t border-white/5 bg-black z-10">
         <div className="max-w-7xl mx-auto">
           
           <div className="text-center mb-20 space-y-4">
@@ -797,7 +797,7 @@ export default function Home() {
       </section>
 
       {/* 8. FAQ */}
-      <section id="faq" className="relative py-28 px-6 border-t border-white/5 bg-[#020617]/95 z-10">
+      <section id="faq" className="relative py-28 px-6 border-t border-white/5 bg-black/95 z-10">
         <div className="max-w-3xl mx-auto">
           <div className="text-center mb-20 space-y-4">
             <span className="text-[10px] font-bold uppercase tracking-widest text-cyan-400 font-mono">Platform Documentation</span>
@@ -839,7 +839,7 @@ export default function Home() {
       </section>
 
       {/* 9. Minimal Footer */}
-      <footer className="relative py-16 px-6 border-t border-white/5 bg-[#020617] z-10">
+      <footer className="relative py-16 px-6 border-t border-white/5 bg-black z-10">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-[10px] text-slate-500 font-bold uppercase tracking-wider">
           <div className="flex items-center gap-2">
             <Truck className="w-4 h-4 text-cyan-400" />
