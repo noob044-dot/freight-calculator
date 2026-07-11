@@ -5,8 +5,9 @@ import {
   Truck, Shield, Zap, Check, ChevronDown, 
   Globe, Play, Terminal
 } from 'lucide-react';
-import { motion, useInView } from 'framer-motion';
-import { BackgroundThree } from '../components/BackgroundThree';
+import { motion, useInView, animate } from 'framer-motion';
+import { HeroScene } from '../components/three/HeroScene';
+import { ScrollProgress } from '../components/ui/ScrollProgress';
 
 // Spring physics
 export const springGentle = { type: 'spring' as const, stiffness: 220, damping: 20 };
@@ -24,19 +25,40 @@ export default function Home() {
 
   useEffect(() => {
     if (!statsInView) return;
-    const interval = setInterval(() => {
-      setPincodeCount(prev => (prev < 19277 ? Math.min(prev + 511, 19277) : 19277));
-      setAccuracyCount(prev => (prev < 97 ? Math.min(prev + 3, 97) : 97));
-      setSavingsCount(prev => (prev < 200000 ? Math.min(prev + 6700, 200000) : 200000));
-    }, 30);
-    return () => clearInterval(interval);
+
+    const controlsPincodes = animate(0, 19277, {
+      duration: 2.0,
+      ease: "easeOut",
+      onUpdate: (value) => setPincodeCount(Math.floor(value))
+    });
+
+    const controlsAccuracy = animate(0, 97, {
+      duration: 2.0,
+      ease: "easeOut",
+      onUpdate: (value) => setAccuracyCount(Math.floor(value))
+    });
+
+    const controlsSavings = animate(0, 200000, {
+      duration: 2.0,
+      ease: "easeOut",
+      onUpdate: (value) => setSavingsCount(Math.floor(value))
+    });
+
+    return () => {
+      controlsPincodes.stop();
+      controlsAccuracy.stop();
+      controlsSavings.stop();
+    };
   }, [statsInView]);
 
   return (
     <div className="relative min-h-screen bg-black text-[#f8fafc] font-sans antialiased overflow-hidden select-none">
       
+      {/* Scroll progress indicator */}
+      <ScrollProgress />
+      
       {/* Three.js Hero Canvas background */}
-      <BackgroundThree type="hero" />
+      <HeroScene />
 
       {/* 1. Header/Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-black/45 backdrop-blur-md border-b border-white/5 transition-all">

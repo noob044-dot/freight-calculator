@@ -16,7 +16,7 @@
   --warning: #d97706; /* amber-600 */
   --error: #dc2626; /* red-600 */
   
-  --font-sans: 'Satoshi', var(--font-sans), system-ui, -apple-system, sans-serif;
+  --font-sans: 'Satoshi', system-ui, sans-serif;
   --font-mono: var(--font-mono), monospace;
 }
 
@@ -108,9 +108,15 @@ body {
   font-family: var(--font-sans);
   overflow-x: hidden;
   letter-spacing: -0.01em;
-  font-feature-settings: "cv01" on, "ss03" on, "cv11" on;
+  font-feature-settings: "cv01", "ss03", "cv11";
 }
 
 h1, h2, h3, .font-display {
   letter-spacing: -0.03em;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
 }

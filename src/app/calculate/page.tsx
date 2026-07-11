@@ -12,7 +12,7 @@ import { TransportMode } from '@/components/ModeSelector';
 import { QuoteResults } from '@/components/QuoteResults';
 import { SearchableCommodity } from '@/components/SearchableCommodity';
 import { QuoteResult, Benchmark } from '@/lib/types';
-import { BackgroundThree } from '@/components/BackgroundThree';
+import { CalculatorScene } from '@/components/three/CalculatorScene';
 
 const springGentle = { type: 'spring' as const, stiffness: 220, damping: 20 };
 
@@ -152,6 +152,13 @@ export default function CalculatePage() {
   // Keyboard Shortcuts Hook
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd/Ctrl + Enter to Calculate (allowed even when input focused)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        handleCalculate();
+        return;
+      }
+
       // Check if user is typing inside an input/textarea
       if (
         document.activeElement?.tagName === 'INPUT' ||
@@ -159,12 +166,6 @@ export default function CalculatePage() {
         document.activeElement?.tagName === 'TEXTAREA'
       ) {
         return;
-      }
-
-      // Cmd/Ctrl + Enter to Calculate
-      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-        e.preventDefault();
-        handleCalculate();
       }
 
       // Cmd+Shift+C to Clear
@@ -203,7 +204,7 @@ export default function CalculatePage() {
     <div className="relative min-h-screen bg-black text-white overflow-hidden flex flex-col font-sans select-none">
       
       {/* 3D WebGL Floor perspectives */}
-      <BackgroundThree type="calculate" />
+      <CalculatorScene />
 
       {/* Top Navbar */}
       <header className="h-16 border-b border-white/5 bg-black/50 backdrop-blur-md flex items-center justify-between px-6 z-20">

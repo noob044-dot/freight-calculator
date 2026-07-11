@@ -2,11 +2,14 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Building2, Mail, Lock, User, Briefcase, 
+  Building2, 
   Eye, EyeOff, Loader2, Check, Shield, ArrowRight
 } from 'lucide-react';
-import { BackgroundThree } from '@/components/BackgroundThree';
+import { AuthScene } from '@/components/three/AuthScene';
+import { AnimatedInput } from '@/components/ui/AnimatedInput';
+import { MagneticButton } from '@/components/ui/MagneticButton';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -77,7 +80,7 @@ export default function LoginPage() {
       <div className="relative md:w-[60%] min-h-[40vh] md:min-h-screen flex flex-col justify-between p-8 md:p-16 border-r border-white/5 bg-black overflow-hidden">
         
         {/* Three.js particles scene */}
-        <BackgroundThree type="auth" />
+        <AuthScene />
 
         {/* Brand */}
         <div className="relative z-10 flex items-center gap-3">
@@ -149,85 +152,119 @@ export default function LoginPage() {
             <p className="text-xs text-slate-400 mt-1">Secure workspace authorization</p>
           </div>
 
-          {/* Tab Switchers */}
-          <div className="flex bg-white/5 p-1 rounded-organic-1 border border-white/5">
+          <div className="relative flex bg-white/5 p-1 rounded-organic-1 border border-white/5 overflow-hidden">
             <button
+              type="button"
               onClick={() => { setActiveTab('login'); setErrorMsg(null); }}
-              className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-organic-1 transition-all ${
-                activeTab === 'login' ? 'bg-gradient-accent text-white shadow-md' : 'text-slate-400 hover:text-white'
-              }`}
+              className="relative z-10 flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors duration-200 text-slate-400 hover:text-white cursor-pointer"
             >
-              Sign In
+              {activeTab === 'login' && (
+                <motion.div
+                  layoutId="activeTabPill"
+                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  className="absolute inset-0 bg-gradient-accent rounded-organic-1 shadow-md z-[-1]"
+                />
+              )}
+              <span className={activeTab === 'login' ? 'text-white' : ''}>Sign In</span>
             </button>
             <button
+              type="button"
               onClick={() => { setActiveTab('signup'); setErrorMsg(null); }}
-              className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-wider rounded-organic-1 transition-all ${
-                activeTab === 'signup' ? 'bg-gradient-accent text-white shadow-md' : 'text-slate-400 hover:text-white'
-              }`}
+              className="relative z-10 flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors duration-200 text-slate-400 hover:text-white cursor-pointer"
             >
-              Register
+              {activeTab === 'signup' && (
+                <motion.div
+                  layoutId="activeTabPill"
+                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  className="absolute inset-0 bg-gradient-accent rounded-organic-1 shadow-md z-[-1]"
+                />
+              )}
+              <span className={activeTab === 'signup' ? 'text-white' : ''}>Register</span>
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            
-            {activeTab === 'signup' && (
-              <>
-                <div className="relative">
-                  <User className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
-                  <input
-                    type="text"
+            <AnimatePresence mode="wait">
+              {activeTab === 'signup' ? (
+                <motion.div
+                  key="signup-fields-wrap"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.2 }}
+                  className="space-y-5"
+                >
+                  <AnimatedInput
+                    label="Contact name"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full bg-black border border-white/5 rounded-xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:border-cyan-400 outline-none transition-all"
-                    placeholder="Contact name"
                   />
-                </div>
-                <div className="relative">
-                  <Briefcase className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
-                  <input
-                    type="text"
+                  <AnimatedInput
+                    label="Company name"
                     required
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
-                    className="w-full bg-black border border-white/5 rounded-xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:border-cyan-400 outline-none transition-all"
-                    placeholder="Company name"
                   />
-                </div>
-              </>
-            )}
-
-            <div className="relative">
-              <Mail className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-black border border-white/5 rounded-xl pl-10 pr-4 py-3 text-xs text-white placeholder-slate-500 focus:border-cyan-400 outline-none transition-all"
-                placeholder="Corporate email address"
-              />
-            </div>
-
-            <div className="relative">
-              <Lock className="absolute left-3 top-3.5 w-4 h-4 text-slate-400" />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full bg-black border border-white/5 rounded-xl pl-10 pr-10 py-3 text-xs text-white placeholder-slate-500 focus:border-cyan-400 outline-none transition-all"
-                placeholder="Password"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 text-slate-400 hover:text-white"
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
+                  <AnimatedInput
+                    label="Corporate email address"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                  <div className="relative">
+                    <AnimatedInput
+                      label="Password"
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-3.5 z-10 text-slate-400 hover:text-white"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="login-fields-wrap"
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -15 }}
+                  transition={{ duration: 0.2 }}
+                  className="space-y-5"
+                >
+                  <AnimatedInput
+                    label="Corporate email address"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                  <div className="relative">
+                    <AnimatedInput
+                      label="Password"
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-3.5 z-10 text-slate-400 hover:text-white"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Password strength meter */}
             {activeTab === 'signup' && password.length > 0 && (
@@ -255,7 +292,7 @@ export default function LoginPage() {
               </div>
             )}
 
-            <button
+            <MagneticButton
               type="submit"
               disabled={loading || success}
               className="w-full py-3.5 bg-gradient-accent text-white font-bold text-xs uppercase tracking-wider rounded-organic-1 hover:scale-102 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-cyan-500/10"
@@ -276,7 +313,7 @@ export default function LoginPage() {
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
-            </button>
+            </MagneticButton>
 
           </form>
 

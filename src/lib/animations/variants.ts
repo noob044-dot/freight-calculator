@@ -1,8 +1,13 @@
 import type { Variants, Transition } from 'framer-motion';
 
+// ── User Requested Presets ──────────────────────────────────
+export const spring = { stiffness: 280, damping: 24 };
+export const springMagnetic = { stiffness: 450, damping: 30 };
+export const stagger = { delay: 60, staggerChildren: 80 };
+export const pageTransition = { duration: 0.4, ease: [0.4, 0, 0.2, 1] };
+
 // ── Spring Presets ──────────────────────────────────────────
-export const springStandard: Transition = { type: 'spring', stiffness: 280, damping: 24 };
-export const springMagnetic: Transition = { type: 'spring', stiffness: 450, damping: 30 };
+export const springStandard: Transition = { type: 'spring', ...spring };
 export const springGentle: Transition = { type: 'spring', stiffness: 120, damping: 20 };
 export const springSnappy: Transition = { type: 'spring', stiffness: 400, damping: 15 };
 
@@ -100,8 +105,8 @@ export const errorShake = {
   transition: { duration: 0.4, ease: 'easeInOut' },
 };
 
-// ── Page Transition ─────────────────────────────────────────
-export const pageTransition: Variants = {
+// ── Page Transition Variants ────────────────────────────────
+export const pageTransitionVariants: Variants = {
   initial: { opacity: 0, y: 12 },
   enter: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] } },
   exit: { opacity: 0, y: -12, transition: { duration: 0.3 } },
