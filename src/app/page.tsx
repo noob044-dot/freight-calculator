@@ -6,13 +6,12 @@ import {
   Globe, Play, Terminal
 } from 'lucide-react';
 import { motion, useInView, animate } from 'framer-motion';
-import { HeroScene } from '../components/three/HeroScene';
-import { ScrollProgress } from '../components/ui/ScrollProgress';
+import { HeroScene } from '@/components/three/HeroScene';
+import { ScrollProgress } from '@/components/ui/ScrollProgress';
+import { spring, stagger, springStandard, springMagnetic } from '@/lib/animations/variants';
 
 // Spring physics
 export const springGentle = { type: 'spring' as const, stiffness: 220, damping: 20 };
-export const springStandard = { type: 'spring' as const, stiffness: 280, damping: 24 };
-export const springMagnetic = { type: 'spring' as const, stiffness: 450, damping: 30 };
 
 export default function Home() {
   // Animated counters

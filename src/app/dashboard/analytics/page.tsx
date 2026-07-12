@@ -10,9 +10,11 @@ import {
 import Link from 'next/link';
 import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar, 
-  XAxis, YAxis, Tooltip, Legend, CartesianGrid, AreaChart, Area
+  XAxis, YAxis, Tooltip, Legend, CartesianGrid, AreaChart, Area, ComposedChart
 } from 'recharts';
 import * as XLSX from 'xlsx';
+import { motion, AnimatePresence } from 'framer-motion';
+import { springStandard, springMagnetic } from '@/lib/animations/variants';
 
 interface HeatmapLane {
   originState: string;
@@ -296,7 +298,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Navigation tabs */}
-        <div className="flex border-b border-white/5 mb-8 overflow-x-auto gap-2">
+        <div className="relative flex border-b border-white/5 mb-8 overflow-x-auto gap-2">
           {[
             { id: 'lanes', label: 'Corridor Heatmap', icon: Map },
             { id: 'margins', label: 'Margin Waterfall', icon: DollarSign },
@@ -309,12 +311,17 @@ export default function AnalyticsPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as 'lanes' | 'margins' | 'predict' | 'internal')}
-                className={`flex items-center gap-2 pb-3 px-4 text-[10px] font-bold uppercase tracking-wider transition-colors border-b-2 ${
-                  isActive ? 'border-cyan-400 text-cyan-400' : 'border-transparent text-slate-400 hover:text-white'
-                }`}
+                className="relative z-10 flex items-center gap-2 pb-3 px-4 text-[10px] font-bold uppercase tracking-wider transition-colors text-slate-400 hover:text-white cursor-pointer"
               >
+                {isActive && (
+                  <motion.div
+                    layoutId="analyticsTabPill"
+                    transition={springMagnetic}
+                    className="absolute bottom-0 left-0 right-0 h-[2px] bg-cyan-400 z-[-1]"
+                  />
+                )}
                 <Icon className="w-4 h-4" />
-                {tab.label}
+                <span className={isActive ? 'text-cyan-400 font-bold' : ''}>{tab.label}</span>
               </button>
             );
           })}
@@ -646,7 +653,7 @@ export default function AnalyticsPage() {
                     <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-4">12-Month pricing projection (with 95% Confidence Bounds)</h3>
                     <div className="h-[260px]">
                       <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={predictionResult.projection} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                        <ComposedChart data={predictionResult.projection} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
                           <XAxis dataKey="month" stroke="#475569" fontSize={10} />
                           <YAxis stroke="#475569" fontSize={10} tickFormatter={(v) => `₹${v/1000}k`} />
@@ -658,7 +665,7 @@ export default function AnalyticsPage() {
                           <Area type="monotone" dataKey="lower" stroke="none" fill="rgba(34,165,233,0.06)" connectNulls />
                           <Area type="monotone" dataKey="upper" name="95% Confidence Bounds" stroke="none" fill="rgba(34,165,233,0.06)" />
                           <Line type="monotone" dataKey="rate" name="Projected Rate (INR)" stroke="#22d3ee" strokeWidth={2.5} />
-                        </AreaChart>
+                        </ComposedChart>
                       </ResponsiveContainer>
                     </div>
                   </div>

@@ -202,9 +202,6 @@ export default function CalculatePage() {
 
   return (
     <div className="relative min-h-screen bg-black text-white overflow-hidden flex flex-col font-sans select-none">
-      
-      {/* 3D WebGL Floor perspectives */}
-      <CalculatorScene />
 
       {/* Top Navbar */}
       <header className="h-16 border-b border-white/5 bg-black/50 backdrop-blur-md flex items-center justify-between px-6 z-20">
@@ -397,7 +394,8 @@ export default function CalculatePage() {
         </div>
 
         {/* ZONE 2 (CENTER 40%): Live Interactive Canvas Map */}
-        <div className="flex-1 min-h-[30vh] lg:h-full bg-slate-950/60 relative flex flex-col justify-between p-6">
+        <div className="flex-1 min-h-[30vh] lg:h-full bg-slate-950/60 relative flex flex-col justify-between p-6 overflow-hidden">
+          <CalculatorScene />
           
           {/* Layer toggles overlay */}
           <div className="absolute top-6 left-6 z-20 bg-glass p-3.5 rounded-xl flex items-center gap-4 text-xs font-bold uppercase tracking-wider">

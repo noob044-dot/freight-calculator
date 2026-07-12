@@ -10,6 +10,7 @@ import {
 import { AuthScene } from '@/components/three/AuthScene';
 import { AnimatedInput } from '@/components/ui/AnimatedInput';
 import { MagneticButton } from '@/components/ui/MagneticButton';
+import { springStandard, springMagnetic } from '@/lib/animations/variants';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -160,8 +161,8 @@ export default function LoginPage() {
             >
               {activeTab === 'login' && (
                 <motion.div
-                  layoutId="activeTabPill"
-                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  layoutId="tabPill"
+                  transition={springMagnetic}
                   className="absolute inset-0 bg-gradient-accent rounded-organic-1 shadow-md z-[-1]"
                 />
               )}
@@ -174,8 +175,8 @@ export default function LoginPage() {
             >
               {activeTab === 'signup' && (
                 <motion.div
-                  layoutId="activeTabPill"
-                  transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                  layoutId="tabPill"
+                  transition={springMagnetic}
                   className="absolute inset-0 bg-gradient-accent rounded-organic-1 shadow-md z-[-1]"
                 />
               )}
@@ -275,9 +276,17 @@ export default function LoginPage() {
                 </div>
                 <div className="flex gap-1 h-1">
                   {[...Array(5)].map((_, i) => (
-                    <div
+                    <motion.div
                       key={i}
-                      className={`flex-1 h-full rounded-full transition-all duration-300 ${
+                      initial={{ scaleX: 0 }}
+                      animate={{ scaleX: 1 }}
+                      transition={{
+                        type: 'spring',
+                        stiffness: 280,
+                        damping: 24,
+                        delay: i * 0.05,
+                      }}
+                      className={`flex-1 h-full rounded-full origin-left transition-colors duration-300 ${
                         i < strength ? strengthColors[strength - 1] : 'bg-white/10'
                       }`}
                     />
