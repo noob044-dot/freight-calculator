@@ -14,8 +14,8 @@ import {
   XAxis, YAxis, Tooltip, Legend, CartesianGrid, AreaChart, Area, ComposedChart
 } from 'recharts';
 import * as XLSX from 'xlsx';
-import { motion, AnimatePresence } from 'framer-motion';
-import { springStandard, springMagnetic } from '@/lib/animations/variants';
+import { motion } from 'framer-motion';
+import { springMagnetic } from '@/lib/animations/variants';
 
 interface HeatmapLane {
   originState: string;

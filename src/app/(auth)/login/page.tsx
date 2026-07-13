@@ -1,89 +1,172 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Building2, 
-  Eye, EyeOff, Loader2, Check, Shield, ArrowRight
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { signIn } from 'next-auth/react';
+import { motion } from 'framer-motion';
+import {
+  Building2,
+  Eye, EyeOff, Loader2, Check, Shield, ArrowRight, Mail, Key
 } from 'lucide-react';
-import { AuthScene } from '@/components/three/AuthScene';
+import dynamic from 'next/dynamic';
+const AuthScene = dynamic(() => import('@/components/three/AuthScene').then(mod => mod.AuthScene), {
+  ssr: false,
+});
 import { AnimatedInput } from '@/components/ui/AnimatedInput';
 import { MagneticButton } from '@/components/ui/MagneticButton';
-import { springStandard, springMagnetic } from '@/lib/animations/variants';
+import { springMagnetic } from '@/lib/animations/variants';
+import { useStore } from '@/lib/store';
+import { loginRequestSchema, magicLinkRequestSchema } from '@/lib/api/contracts';
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  
   const [activeTab, setActiveTab] = useState<'login' | 'signup'>('login');
+  const [loginMode, setLoginMode] = useState<'password' | 'magic'>('password');
+  
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Form Fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [company, setCompany] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // Password strength calculation
-  const getPasswordStrength = () => {
-    if (!password) return 0;
-    let score = 0;
-    if (password.length >= 8) score += 1;
-    if (/[A-Z]/.test(password)) score += 1;
-    if (/[0-9]/.test(password)) score += 1;
-    if (/[^A-Za-z0-9]/.test(password)) score += 1;
-    if (password.length >= 12) score += 1;
-    return score;
-  };
+  // --- 1. MAGIC LINK / TOKEN AUTO-VERIFICATION ---
+  useEffect(() => {
+    const token = searchParams.get('token');
+    if (token) {
+      const h = setTimeout(() => {
+        setLoading(true);
+        setErrorMsg(null);
+        
+        fetch('/api/auth/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token }),
+        })
+          .then(async (res) => {
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Verification failed');
+            return data;
+          })
+          .then((data) => {
+            // Set Zustand store
+            useStore.getState().setAuth(data.user, data.org, data.token, data.refresh);
+            useStore.getState().hydrate();
+            
+            setSuccess(true);
+            setSuccessMsg('Identity verified. Access corridor unlocked.');
+            
+            setTimeout(() => {
+              const redirectPath = searchParams.get('redirect') || '/dashboard';
+              router.push(redirectPath);
+            }, 1500);
+          })
+          .catch((err) => {
+            setLoading(false);
+            setErrorMsg(err.message || 'Token verification failed.');
+          });
+      }, 0);
+      return () => clearTimeout(h);
+    }
+  }, [searchParams, router]);
 
-  const strength = getPasswordStrength();
-  const strengthColors = ['bg-rose-600', 'bg-rose-500', 'bg-amber-500', 'bg-emerald-500', 'bg-emerald-400'];
-
+  // --- 2. CREDENTIALS AND MAGIC LINK SUBMIT HANDLERS ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg(null);
+    setSuccessMsg(null);
 
-    // Simulate Network latency
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      if (loginMode === 'password') {
+        // Validate payload via Zod contract
+        const validation = loginRequestSchema.safeParse({ email, password });
+        if (!validation.success) {
+          setLoading(false);
+          setErrorMsg(validation.error.issues[0].message);
+          return;
+        }
 
-    if (activeTab === 'login') {
-      // Basic login validation (supports both standard credentials and basic auth backup)
-      if ((email === 'admin@freightquote.in' && password === 'Freight@2026') || (email === 'admin' && password === 'admin123')) {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          setLoading(false);
+          setErrorMsg(data.error || 'Authentication failed');
+          return;
+        }
+
+        // Wait for cookie to be stored (resolve cookie race condition)
+        await new Promise(r => setTimeout(r, 100));
+
+        // Hydrate Zustand store
+        useStore.getState().setAuth(data.user, data.org, data.token, data.refresh);
+        useStore.getState().hydrate();
+
         setSuccess(true);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        // Put token in cookies / headers if needed by middleware
-        document.cookie = `auth=Basic ${btoa('admin:admin123')}; path=/`;
-        router.push('/dashboard');
+        setSuccessMsg('Authorization granted. Syncing workspace...');
+        
+        setTimeout(() => {
+          // Redirect to onboarding if not complete, otherwise go to dashboard/intended page
+          if (!data.user.onboardingComplete) {
+            router.push('/onboarding');
+          } else {
+            const redirectPath = searchParams.get('redirect') || '/dashboard';
+            router.push(redirectPath);
+          }
+        }, 1200);
       } else {
+        // Magic link flow
+        const validation = magicLinkRequestSchema.safeParse({ email });
+        if (!validation.success) {
+          setLoading(false);
+          setErrorMsg(validation.error.issues[0].message);
+          return;
+        }
+
+        const res = await fetch('/api/auth/magic-link', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          setLoading(false);
+          setErrorMsg(data.error || 'Failed to dispatch magic link');
+          return;
+        }
+
         setLoading(false);
-        setErrorMsg('Invalid corporate email or password. Use: admin@freightquote.in / Freight@2026');
+        setSuccessMsg(data.message || 'Magic link sent. Check console logs!');
       }
-    } else {
-      // Signup mode
-      if (!name || !company || !email || password.length < 8) {
-        setLoading(false);
-        setErrorMsg('Please complete all corporate validation steps.');
-        return;
-      }
-      setSuccess(true);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      router.push('/dashboard');
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+      setErrorMsg('Network error. Failed to establish connection with auth server.');
     }
+  };
+
+  const handleGoogleSignIn = () => {
+    signIn("google", { callbackUrl: "/dashboard" });
   };
 
   return (
     <div className="relative min-h-screen bg-black text-white flex flex-col md:flex-row overflow-hidden">
-      
+
       {/* LEFT SIDE: WebGL background + stats (60% desktop) */}
       <div className="relative md:w-[60%] min-h-[40vh] md:min-h-screen flex flex-col justify-between p-8 md:p-16 border-r border-white/5 bg-black overflow-hidden">
-        
-        {/* Three.js particles scene */}
+
         <AuthScene />
 
-        {/* Brand */}
         <div className="relative z-10 flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-gradient-accent flex items-center justify-center">
             <Building2 className="w-4 h-4 text-white" />
@@ -91,24 +174,22 @@ export default function LoginPage() {
           <span className="font-bold text-xs uppercase tracking-wider">Freight Intelligence</span>
         </div>
 
-        {/* Big title */}
         <div className="relative z-10 my-auto max-w-xl space-y-6 pt-12 md:pt-0">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[9px] font-bold uppercase tracking-wider text-cyan-400">
             <Shield className="w-3 h-3" />
             Verified Encrypted Session
           </span>
-          
+
           <h1 className="text-4xl md:text-6xl font-light tracking-tight leading-none text-white font-display select-text">
             Control the <br />
             <span className="text-gradient-accent font-medium">Platform.</span>
           </h1>
-          
+
           <p className="text-xs md:text-sm text-slate-400 leading-relaxed select-text">
             Sign in to access real-time forwarder bids, verify compliance audits, generate GST-compliant invoices, and analyze margin waterfall charts.
           </p>
         </div>
 
-        {/* Metrics */}
         <div className="relative z-10 pt-8 border-t border-white/5 grid grid-cols-3 gap-6 max-w-lg">
           <div>
             <div className="text-xl font-bold font-mono text-white">24 Mins</div>
@@ -128,10 +209,9 @@ export default function LoginPage() {
 
       {/* RIGHT SIDE: Glass Panel login controls (40% desktop) */}
       <div className="relative md:w-[40%] flex flex-col justify-center items-center p-6 sm:p-12 md:p-16 bg-black/90 backdrop-blur-3xl z-10">
-        
+
         <div className="w-full max-w-[380px] space-y-8">
-          
-          {/* Logo SVG Draw */}
+
           <div className="flex justify-center mb-6">
             <svg width="48" height="48" viewBox="0 0 36 36" fill="none" className="text-cyan-400">
               <rect
@@ -156,7 +236,7 @@ export default function LoginPage() {
           <div className="relative flex bg-white/5 p-1 rounded-organic-1 border border-white/5 overflow-hidden">
             <button
               type="button"
-              onClick={() => { setActiveTab('login'); setErrorMsg(null); }}
+              onClick={() => { setActiveTab('login'); setErrorMsg(null); setSuccessMsg(null); }}
               className="relative z-10 flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors duration-200 text-slate-400 hover:text-white cursor-pointer"
             >
               {activeTab === 'login' && (
@@ -170,7 +250,7 @@ export default function LoginPage() {
             </button>
             <button
               type="button"
-              onClick={() => { setActiveTab('signup'); setErrorMsg(null); }}
+              onClick={() => { router.push('/register'); }}
               className="relative z-10 flex-1 py-2 text-[10px] font-bold uppercase tracking-wider transition-colors duration-200 text-slate-400 hover:text-white cursor-pointer"
             >
               {activeTab === 'signup' && (
@@ -185,119 +265,69 @@ export default function LoginPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            <AnimatePresence mode="wait">
-              {activeTab === 'signup' ? (
-                <motion.div
-                  key="signup-fields-wrap"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.2 }}
-                  className="space-y-5"
-                >
+            <div className="space-y-5">
+              <AnimatedInput
+                label="Corporate email address"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+              
+              {loginMode === 'password' && (
+                <div className="relative">
                   <AnimatedInput
-                    label="Contact name"
+                    label="Password"
+                    type={showPassword ? 'text' : 'password'}
                     required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                   />
-                  <AnimatedInput
-                    label="Company name"
-                    required
-                    value={company}
-                    onChange={(e) => setCompany(e.target.value)}
-                  />
-                  <AnimatedInput
-                    label="Corporate email address"
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                  <div className="relative">
-                    <AnimatedInput
-                      label="Password"
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-3.5 z-10 text-slate-400 hover:text-white"
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="login-fields-wrap"
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -15 }}
-                  transition={{ duration: 0.2 }}
-                  className="space-y-5"
-                >
-                  <AnimatedInput
-                    label="Corporate email address"
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                  <div className="relative">
-                    <AnimatedInput
-                      label="Password"
-                      type={showPassword ? 'text' : 'password'}
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-3.5 z-10 text-slate-400 hover:text-white"
-                    >
-                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </motion.div>
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-3.5 z-10 text-slate-400 hover:text-white"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               )}
-            </AnimatePresence>
+            </div>
 
-            {/* Password strength meter */}
-            {activeTab === 'signup' && password.length > 0 && (
-              <div className="space-y-1.5">
-                <div className="flex justify-between text-[9px] uppercase tracking-wider text-slate-400 font-bold">
-                  <span>Strength</span>
-                  <span>{['Weak', 'Fair', 'Good', 'Strong', 'Excellent'][Math.min(strength, 4)]}</span>
-                </div>
-                <div className="flex gap-1 h-1">
-                  {[...Array(5)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      initial={{ scaleX: 0 }}
-                      animate={{ scaleX: 1 }}
-                      transition={{
-                        type: 'spring',
-                        stiffness: 280,
-                        damping: 24,
-                        delay: i * 0.05,
-                      }}
-                      className={`flex-1 h-full rounded-full origin-left transition-colors duration-300 ${
-                        i < strength ? strengthColors[strength - 1] : 'bg-white/10'
-                      }`}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Toggle Login Mode */}
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginMode(loginMode === 'password' ? 'magic' : 'password');
+                  setErrorMsg(null);
+                  setSuccessMsg(null);
+                }}
+                className="text-[10px] text-cyan-400 hover:underline flex items-center gap-1 cursor-pointer font-medium uppercase tracking-wider"
+              >
+                {loginMode === 'password' ? (
+                  <>
+                    <Mail className="w-3 h-3" />
+                    Sign in with Magic Link
+                  </>
+                ) : (
+                  <>
+                    <Key className="w-3 h-3" />
+                    Sign in with Password
+                  </>
+                )}
+              </button>
+            </div>
 
             {errorMsg && (
               <div className="p-3.5 bg-rose-500/10 border border-rose-500/20 rounded-xl text-xs text-rose-400 font-medium">
                 {errorMsg}
+              </div>
+            )}
+
+            {successMsg && (
+              <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs text-emerald-400 font-medium">
+                {successMsg}
               </div>
             )}
 
@@ -309,7 +339,7 @@ export default function LoginPage() {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  Authenticating...
+                  Processing Request...
                 </>
               ) : success ? (
                 <>
@@ -318,7 +348,7 @@ export default function LoginPage() {
                 </>
               ) : (
                 <>
-                  <span>Submit Credentials</span>
+                  <span>{loginMode === 'password' ? 'Submit Credentials' : 'Send Magic Link'}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -333,6 +363,7 @@ export default function LoginPage() {
             </div>
             <button
               type="button"
+              onClick={handleGoogleSignIn}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.06] text-slate-400 hover:text-white text-xs transition-all duration-200 cursor-pointer"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -354,5 +385,13 @@ export default function LoginPage() {
       </div>
 
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black flex items-center justify-center text-slate-500 font-mono text-xs">LOADING AUTHENTICATOR...</div>}>
+      <LoginPageContent />
+    </Suspense>
   );
 }

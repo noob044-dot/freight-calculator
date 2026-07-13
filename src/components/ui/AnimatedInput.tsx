@@ -4,7 +4,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParticleBurst } from "@/hooks/useParticleBurst";
-import { springStandard } from "@/lib/animations/variants";
+
 
 interface AnimatedInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label: string;
@@ -21,8 +21,7 @@ export const AnimatedInput: React.FC<AnimatedInputProps> = ({
   ...props
 }) => {
   const [isMounted, setIsMounted] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
-  const hasValue = value !== undefined && value !== null && value !== "";
+
   const { particles, triggerBurst } = useParticleBurst();
 
   useEffect(() => {
@@ -63,38 +62,36 @@ export const AnimatedInput: React.FC<AnimatedInputProps> = ({
         />
       ))}
 
-      {/* Floating Label */}
-      <motion.label
-        initial={false}
-        animate={{
-          y: (isFocused || hasValue) ? -28 : 0,
-          scale: (isFocused || hasValue) ? 0.82 : 1,
-          color: error ? "#f43f5e" : isFocused ? "#22d3ee" : "#94a3b8",
-        }}
-        transition={springStandard}
-        className="absolute left-3 top-3.5 text-xs font-medium uppercase tracking-wider pointer-events-none select-none origin-left"
-      >
-        {label}
-      </motion.label>
-
-      {/* Input element */}
+      {/* Input element (must come first for peer selectors to work) */}
       <input
         value={value}
+        placeholder=" "
         onFocus={(e) => {
-          setIsFocused(true);
           triggerBurst(e);
           if (onFocus) onFocus(e);
         }}
         onBlur={(e) => {
-          setIsFocused(false);
           if (onBlur) onBlur(e);
         }}
-        className={`w-full bg-black/40 border ${
+        className={`peer w-full bg-black/40 border ${
           error ? "border-rose-500/50 focus:border-rose-500" : "border-white/5 focus:border-cyan-400"
-        } rounded-xl pl-3 pr-3 py-3.5 text-xs text-white placeholder-transparent outline-none transition-all duration-300 focus:bg-cyan-500/[0.01] focus:shadow-[0_0_20px_rgba(34,211,238,0.08)] ${className}`}
+        } rounded-xl pl-3 pr-3 py-3.5 text-xs text-white outline-none transition-all duration-300 focus:bg-cyan-500/[0.01] focus:shadow-[0_0_20px_rgba(34,211,238,0.08)] ${className}`}
         suppressHydrationWarning={true}
         {...props}
       />
+
+      {/* Floating Label (styled using native CSS peer states to support autofill) */}
+      <label
+        className={`absolute left-3 top-3.5 text-xs font-medium uppercase tracking-wider pointer-events-none select-none origin-left transition-all duration-300
+          peer-focus:-translate-y-7 peer-focus:scale-82
+          peer-[:not(:placeholder-shown)]:-translate-y-7 peer-[:not(:placeholder-shown)]:scale-82
+          peer-autofill:-translate-y-7 peer-autofill:scale-82
+          peer-[-webkit-autofill]:-translate-y-7 peer-[-webkit-autofill]:scale-82
+          ${error ? "text-rose-500" : "text-slate-400 peer-focus:text-cyan-400"}
+        `}
+      >
+        {label}
+      </label>
 
       {/* Error state validation morph */}
       <AnimatePresence>

@@ -530,11 +530,7 @@ export default function DashboardPage() {
     doc.save(`invoice-${invoice.id}.pdf`);
   };
 
-  const isSlaBreached = (lead: Lead) => {
-    if (lead.status !== 'New') return false;
-    const hoursElapsed = (new Date().getTime() - new Date(lead.createdAt).getTime()) / (1000 * 60 * 60);
-    return hoursElapsed > 2;
-  };
+
 
   // Drag and Drop Kanban end handler
   const handleDragEnd = (event: DragEndEvent) => {

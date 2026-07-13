@@ -3,13 +3,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Truck, Shield, Zap, Check, ChevronDown, 
-  Globe, Play, Terminal, LucideIcon
+  Globe, Play, Terminal
 } from 'lucide-react';
 import { motion, useInView } from 'framer-motion';
-import { HeroScene } from '@/components/three/HeroScene';
+import dynamic from 'next/dynamic';
+const HeroScene = dynamic(() => import('@/components/three/HeroScene').then(mod => mod.HeroScene), {
+  ssr: false,
+});
 import { ScrollProgress } from '@/components/ui/ScrollProgress';
 import { 
-  springGentle, springStandard, springMagnetic, 
+  springGentle, 
   staggerContainer, fadeUp, counterVariants, pageTransition,
   fadeUpMagnetic
 } from '@/lib/animations/variants';
