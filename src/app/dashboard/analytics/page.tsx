@@ -8,6 +8,7 @@ import {
   ArrowRight, ShieldAlert, Check, Loader2
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   ResponsiveContainer, LineChart, Line, BarChart, Bar, 
   XAxis, YAxis, Tooltip, Legend, CartesianGrid, AreaChart, Area, ComposedChart
@@ -91,6 +92,14 @@ const MODES = [
 ];
 
 export default function AnalyticsPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const router = useRouter();
+
+  const handleSignOut = () => {
+    document.cookie = "auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    router.push('/login');
+  };
+
   const [activeTab, setActiveTab] = useState<'lanes' | 'margins' | 'predict' | 'internal'>('lanes');
   const [loading, setLoading] = useState(true);
 
@@ -154,11 +163,22 @@ export default function AnalyticsPage() {
   };
 
   useEffect(() => {
+    const hasCookie = document.cookie.split(';').some((item) => item.trim().startsWith('auth='));
+    if (!hasCookie) {
+      router.push('/login');
+    } else {
+      setIsAuthenticated(true);
+    }
+  }, [router]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
     fetchData();
-  }, []);
+  }, [isAuthenticated]);
 
   // Update linear regression pricing output on slider / parameters shift
   useEffect(() => {
+    if (!isAuthenticated) return;
     const fetchPrediction = async () => {
       try {
         const authHeader = 'Basic ' + btoa('admin:admin123');
@@ -181,7 +201,7 @@ export default function AnalyticsPage() {
     };
 
     fetchPrediction();
-  }, [originState, destState, mode, weightKg, month]);
+  }, [originState, destState, mode, weightKg, month, isAuthenticated]);
 
   // Excel multi-sheet download helper
   const handleExcelExport = () => {
@@ -241,12 +261,14 @@ export default function AnalyticsPage() {
     XLSX.writeFile(wb, 'Freight_Marketplace_Analytics.xlsx');
   };
 
-  if (loading) {
+  if (!isAuthenticated || loading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-10 h-10 text-cyan-400 animate-spin" />
-          <p className="text-sm text-slate-400 font-mono">Loading Analytics ledger...</p>
+          <p className="text-sm text-slate-400 font-mono">
+            {!isAuthenticated ? 'Verifying credentials...' : 'Loading Analytics ledger...'}
+          </p>
         </div>
       </div>
     );
@@ -273,6 +295,12 @@ export default function AnalyticsPage() {
               <span className="text-[10px] font-bold uppercase tracking-wider text-cyan-400 border-b-2 border-cyan-400 py-5">
                 Analytics & BI
               </span>
+              <button
+                onClick={handleSignOut}
+                className="text-[10px] font-bold uppercase tracking-wider text-rose-400 hover:text-rose-300 transition-colors cursor-pointer"
+              >
+                Sign Out
+              </button>
             </div>
           </div>
         </div>

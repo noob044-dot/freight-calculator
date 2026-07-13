@@ -64,8 +64,12 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-gradient-accent flex items-center justify-center">
-                <Truck className="w-4 h-4 text-white animate-pulse" />
+              <div className="w-8 h-8 rounded-lg bg-gradient-accent/10 border border-cyan-400/20 flex items-center justify-center flex-shrink-0">
+                <svg viewBox="0 0 24 24" className="w-4 h-4 text-cyan-400 animate-pulse" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+                  <path d="M2 12h20" />
+                </svg>
               </div>
               <span className="font-bold tracking-tight text-sm uppercase">Freight Intelligence</span>
             </div>

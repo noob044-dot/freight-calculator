@@ -2,14 +2,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Building2, ArrowRight, AlertCircle, ThumbsUp, 
   Download, CreditCard, Plus, Edit2, Trash2, ChevronLeft,
   ChevronRight, LayoutGrid, Settings, FileSpreadsheet, Loader2,
-  BarChart2
+  BarChart2, Calculator, ChevronDown, Copy, CheckSquare, RefreshCw, X
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,8 +18,21 @@ import { DndContext, useDraggable, useDroppable, DragEndEvent } from '@dnd-kit/c
 import { Lead, Forwarder, Invoice, ForwarderRate } from '../../lib/db';
 import { springStandard, springMagnetic } from '@/lib/animations/variants';
 import { CalculatorWidget } from '@/components/dashboard/CalculatorWidget';
+import { PincodeAutocomplete } from '@/components/PincodeAutocomplete';
+import { QuoteResults } from '@/components/QuoteResults';
+import { SearchableCommodity } from '@/components/SearchableCommodity';
+import { QuoteResult, Benchmark } from '@/lib/types';
+import { TransportMode } from '@/components/ModeSelector';
 
 export default function DashboardPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const router = useRouter();
+
+  const handleSignOut = () => {
+    document.cookie = "auth=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    router.push('/login');
+  };
+
   const [role, setRole] = useState<'admin' | 'forwarder'>('admin');
   const [selectedForwarderId, setSelectedForwarderId] = useState<string>('fwd-safexpress');
   
@@ -28,8 +42,28 @@ export default function DashboardPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   
   // Tab states
-  const [adminTab, setAdminTab] = useState<'leads' | 'forwarders' | 'billing'>('leads');
+  const [adminTab, setAdminTab] = useState<'leads' | 'forwarders' | 'billing' | 'calculator'>('leads');
   const [forwarderTab, setForwarderTab] = useState<'pipeline' | 'ratecard' | 'billing'>('pipeline');
+
+  // Calculator Integration States
+  const [calcActiveMode, setCalcActiveMode] = useState<TransportMode>('all');
+  const [calcOrigin, setCalcOrigin] = useState('400001');
+  const [calcDest, setCalcDest] = useState('110001');
+  const [calcWeight, setCalcWeight] = useState('10000');
+  const [calcCommodity, setCalcCommodity] = useState('general');
+  const [calcVehicle, setCalcVehicle] = useState('auto');
+  const [calcContainerType, setCalcContainerType] = useState('auto');
+  const [calcIncoterm, setCalcIncoterm] = useState('EXW');
+  const [calcCargoValue, setCalcCargoValue] = useState('');
+  const [calcDimensions, setCalcDimensions] = useState({ length: '', width: '', height: '' });
+  const [calcShowAdvanced, setCalcShowAdvanced] = useState(false);
+  const [calcLoading, setCalcLoading] = useState(false);
+  const [calcError, setCalcError] = useState<string | null>(null);
+  const [calcShowResults, setCalcShowResults] = useState(false);
+  const [calcAllQuotes, setCalcAllQuotes] = useState<Record<string, QuoteResult & { error?: string }>>({});
+  const [calcAllBenchmarks, setCalcAllBenchmarks] = useState<Record<string, Benchmark>>({});
+  const [calcShowHelpModal, setCalcShowHelpModal] = useState(false);
+  const [calcCopiedLink, setCalcCopiedLink] = useState(false);
   
   // UI Interaction States
   const [loading, setLoading] = useState(true);
@@ -78,7 +112,127 @@ export default function DashboardPage() {
     }
   };
 
+  const handleCalcCalculate = useCallback(async () => {
+    setCalcLoading(true);
+    setCalcError(null);
+    setCalcShowResults(false);
+
+    try {
+      const payload = {
+        originPincode: calcOrigin,
+        destPincode: calcDest,
+        weightKg: Number(calcWeight),
+        commodity: calcCommodity,
+        valueInr: calcCargoValue ? Number(calcCargoValue) : undefined,
+        dimensions: (calcDimensions.length && calcDimensions.width && calcDimensions.height) ? {
+          length: Number(calcDimensions.length),
+          width: Number(calcDimensions.width),
+          height: Number(calcDimensions.height)
+        } : undefined,
+        vehicleType: calcVehicle === 'auto' ? undefined : calcVehicle as any,
+        containerType: calcContainerType === 'auto' ? undefined : calcContainerType as any,
+        incoterm: calcIncoterm as any,
+      };
+
+      const res = await fetch(`/api/quote?mode=all`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json();
+        throw new Error(errData.error || 'Failed to calculate quote');
+      }
+
+      const data = await res.json();
+      setCalcAllQuotes(data.quotes || {});
+      setCalcAllBenchmarks(data.benchmarks || {});
+      setCalcShowResults(true);
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Calculation failed. Please verify inputs.';
+      setCalcError(errMsg);
+    } finally {
+      setCalcLoading(false);
+    }
+  }, [calcOrigin, calcDest, calcWeight, calcCommodity, calcVehicle, calcCargoValue, calcDimensions, calcContainerType, calcIncoterm]);
+
+  const handleCalcClear = useCallback(() => {
+    setCalcOrigin('');
+    setCalcDest('');
+    setCalcWeight('10000');
+    setCalcCargoValue('');
+    setCalcDimensions({ length: '', width: '', height: '' });
+    setCalcError(null);
+    setCalcShowResults(false);
+  }, []);
+
+  const handleCalcCopyLink = () => {
+    navigator.clipboard.writeText(window.location.origin + '/calculate');
+    setCalcCopiedLink(true);
+    setTimeout(() => setCalcCopiedLink(false), 2000);
+  };
+
+  // Keyboard Shortcuts Hook for Calculator Tab
   useEffect(() => {
+    if (adminTab !== 'calculator') return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd/Ctrl + Enter to Calculate (allowed even when input focused)
+      if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        e.preventDefault();
+        handleCalcCalculate();
+        return;
+      }
+
+      // Check if user is typing inside an input/textarea
+      if (
+        document.activeElement?.tagName === 'INPUT' ||
+        document.activeElement?.tagName === 'SELECT' ||
+        document.activeElement?.tagName === 'TEXTAREA'
+      ) {
+        return;
+      }
+
+      // Cmd+Shift+C to Clear
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'c') {
+        e.preventDefault();
+        handleCalcClear();
+      }
+
+      // 1-4 for Mode Switcher
+      if (['1', '2', '3', '4'].includes(e.key)) {
+        const modesMap: Record<string, TransportMode> = {
+          '1': 'all',
+          '2': 'road',
+          '3': 'air',
+          '4': 'sea'
+        };
+        setCalcActiveMode(modesMap[e.key]);
+      }
+
+      // ? or h for Help Modal
+      if (e.key === '?' || e.key.toLowerCase() === 'h') {
+        e.preventDefault();
+        setCalcShowHelpModal(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [adminTab, handleCalcCalculate, handleCalcClear]);
+
+  useEffect(() => {
+    const hasCookie = document.cookie.split(';').some((item) => item.trim().startsWith('auth='));
+    if (!hasCookie) {
+      router.push('/login');
+    } else {
+      setIsAuthenticated(true);
+    }
+  }, [router]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
     fetchData();
 
     // SSE Bidding Live Stream Connection
@@ -115,7 +269,7 @@ export default function DashboardPage() {
     return () => {
       eventSource.close();
     };
-  }, []);
+  }, [isAuthenticated]);
 
   // Submit Bid
   const handleBidSubmit = async (e: React.FormEvent) => {
@@ -393,12 +547,14 @@ export default function DashboardPage() {
     handleStatusChange(leadId, newStatus);
   };
 
-  if (loading) {
+  if (!isAuthenticated || loading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-10 h-10 text-cyan-400 animate-spin" />
-          <p className="text-sm text-slate-400 font-mono">Loading Command Center...</p>
+          <p className="text-sm text-slate-400 font-mono">
+            {!isAuthenticated ? 'Verifying credentials...' : 'Loading Command Center...'}
+          </p>
         </div>
       </div>
     );
@@ -470,6 +626,16 @@ export default function DashboardPage() {
             >
               <CreditCard className="w-4 h-4 flex-shrink-0" />
               {isSidebarExpanded && <span>Invoices</span>}
+            </button>
+
+            <button 
+              onClick={() => { if (role === 'admin') setAdminTab('calculator'); }}
+              className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-wider rounded-xl transition-all cursor-pointer ${
+                adminTab === 'calculator' ? 'bg-cyan-500/10 text-cyan-400' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Calculator className="w-4 h-4 flex-shrink-0" />
+              {isSidebarExpanded && <span>Calculator Tool</span>}
             </button>
 
             <button className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold uppercase tracking-wider rounded-xl text-slate-400 hover:text-white transition-all">
@@ -550,11 +716,382 @@ export default function DashboardPage() {
                 <span className={role === 'forwarder' ? 'text-white' : ''}>Forwarder</span>
               </button>
             </div>
+
+            <button
+              onClick={handleSignOut}
+              className="px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider border border-rose-500/20 hover:border-rose-500/40 bg-rose-500/5 hover:bg-rose-500/10 text-rose-400 transition-all rounded-xl cursor-pointer"
+            >
+              Sign Out
+            </button>
           </div>
         </header>
 
         {/* Dynamic Grid Layout: main view + widget side panel */}
-        <div className="p-8 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {adminTab === 'calculator' ? (
+          <div className="flex-1 flex flex-col lg:flex-row items-stretch z-10 relative overflow-hidden h-[calc(100vh-80px)]">
+            
+            {/* ZONE 1 (LEFT 35%): Sticky Input Panel */}
+            <div className="lg:w-[35%] border-r border-white/5 bg-black/85 backdrop-blur-3xl overflow-y-auto p-8 space-y-6 flex flex-col justify-between">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold tracking-tight text-white font-display">Calculators Parameters</h2>
+                  <button
+                    onClick={handleCalcClear}
+                    className="text-[10px] font-bold uppercase tracking-wider text-slate-500 hover:text-rose-400 transition-colors cursor-pointer"
+                  >
+                    Reset Override
+                  </button>
+                </div>
+
+                {/* Inputs */}
+                <div className="space-y-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <PincodeAutocomplete
+                      label="Origin Pincode"
+                      value={calcOrigin}
+                      onChange={setCalcOrigin}
+                      placeholder="e.g. 400001 (Mumbai)"
+                    />
+                    <PincodeAutocomplete
+                      label="Destination Pincode"
+                      value={calcDest}
+                      onChange={setCalcDest}
+                      placeholder="e.g. 110001 (Delhi)"
+                    />
+                  </div>
+
+                  {/* Weight Slider widget */}
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      <span>Cargo Weight (kg)</span>
+                      <span className="font-mono text-white">{(Number(calcWeight)/1000).toFixed(1)} Tons</span>
+                    </div>
+                    <input
+                      type="range"
+                      min="100"
+                      max="50000"
+                      step="100"
+                      value={calcWeight}
+                      onChange={(e) => setCalcWeight(e.target.value)}
+                      className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+                    />
+                    <input
+                      type="number"
+                      value={calcWeight}
+                      onChange={(e) => setCalcWeight(e.target.value)}
+                      className="w-full bg-black border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white placeholder-slate-500 focus:border-cyan-400 outline-none font-mono"
+                    />
+                  </div>
+
+                  {/* Commodity Search dropdown */}
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Commodity Class</label>
+                    <SearchableCommodity
+                      value={calcCommodity}
+                      onChange={setCalcCommodity}
+                      placeholder="Search class..."
+                    />
+                  </div>
+
+                  {/* Advanced collapsibles */}
+                  <div className="border-t border-white/5 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setCalcShowAdvanced(!calcShowAdvanced)}
+                      className="flex items-center justify-between w-full text-[10px] font-bold text-slate-400 uppercase tracking-wider hover:text-white"
+                    >
+                      <span>Advanced Parameters</span>
+                      <ChevronDown className={`w-4 h-4 transition-transform ${calcShowAdvanced ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {calcShowAdvanced && (
+                      <div className="mt-4 space-y-4 animate-fade-in">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Cargo Value (INR)</label>
+                            <input
+                              type="number"
+                              value={calcCargoValue}
+                              onChange={(e) => setCalcCargoValue(e.target.value)}
+                              className="w-full bg-black border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-cyan-400 font-mono"
+                              placeholder="Insurance limit"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Incoterms</label>
+                            <select
+                              value={calcIncoterm}
+                              onChange={(e) => setCalcIncoterm(e.target.value)}
+                              className="w-full bg-black border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-cyan-400"
+                            >
+                              {['EXW', 'FOB', 'CIF', 'CFR'].map(inc => <option key={inc} value={inc}>{inc}</option>)}
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Preferred FTL</label>
+                            <select
+                              value={calcVehicle}
+                              onChange={(e) => setCalcVehicle(e.target.value)}
+                              className="w-full bg-black border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-cyan-400"
+                            >
+                              {[{ code: 'auto', name: 'Auto-Select' }, { code: '16T', name: '16 Ton' }, { code: '25T', name: '25 Ton' }, { code: '40T', name: '40 Ton' }].map(v => <option key={v.code} value={v.code}>{v.name}</option>)}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1.5">Sea Container</label>
+                            <select
+                              value={calcContainerType}
+                              onChange={(e) => setCalcContainerType(e.target.value)}
+                              className="w-full bg-black border border-white/5 rounded-xl px-4 py-2.5 text-xs text-white outline-none focus:border-cyan-400"
+                            >
+                              {[{ code: 'auto', name: 'Auto-Select' }, { code: '20ft_GP', name: '20ft General' }, { code: '40ft_GP', name: '40ft General' }].map(ct => <option key={ct.code} value={ct.code}>{ct.name}</option>)}
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Trigger button */}
+              <div className="pt-6 border-t border-white/5 space-y-4">
+                {calcError && (
+                  <div className="p-3.5 bg-rose-500/10 border border-rose-500/20 rounded-xl text-xs text-rose-400">
+                    {calcError}
+                  </div>
+                )}
+                
+                <button
+                  onClick={handleCalcCalculate}
+                  disabled={calcLoading}
+                  className="w-full py-4 bg-gradient-accent text-white font-bold text-xs uppercase tracking-wider rounded-organic-1 hover:scale-102 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-cyan-500/10"
+                >
+                  {calcLoading ? (
+                    <span className="flex items-center gap-2">
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      Running Engine Matrix...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <Calculator className="w-4 h-4" />
+                      Evaluate Freight Rates
+                    </span>
+                  )}
+                </button>
+                <div className="text-center text-[9px] text-slate-500 font-bold uppercase tracking-widest">
+                  Press Cmd+Enter to run calculations
+                </div>
+              </div>
+            </div>
+
+            {/* ZONE 2 (CENTER 40%): Results Display */}
+            <div className="lg:w-[40%] border-r border-white/5 bg-slate-950/20 overflow-y-auto p-6 space-y-6 flex flex-col justify-between">
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400">Calculation Output</h2>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={handleCalcCopyLink}
+                      className="p-1.5 rounded-lg border border-white/5 hover:bg-white/5 text-slate-400 hover:text-white transition-colors cursor-pointer"
+                      title="Copy quote link"
+                    >
+                      {calcCopiedLink ? <CheckSquare className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Mode switch for detailed results */}
+                <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
+                  {(['all', 'road', 'air'] as const).map(m => (
+                    <button
+                      key={m}
+                      onClick={() => setCalcActiveMode(m)}
+                      className={`flex-1 py-1.5 text-[9px] font-bold uppercase tracking-wider rounded-lg transition-all cursor-pointer ${
+                        calcActiveMode === m ? 'bg-gradient-accent text-white shadow' : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      {m === 'all' ? 'All Modes' : m === 'road' ? 'Road FTL' : 'Air Cargo'}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Dynamic Results Display */}
+                {calcShowResults ? (
+                  <div className="space-y-6 animate-fade-in">
+                    {calcActiveMode === 'all' ? (
+                      <QuoteResults
+                        mode="all"
+                        allQuotes={calcAllQuotes}
+                        allBenchmarks={calcAllBenchmarks}
+                      />
+                    ) : (
+                      <QuoteResults
+                        mode={calcActiveMode as 'road' | 'air' | 'sea' | 'rail'}
+                        singleResult={calcAllQuotes[calcActiveMode]}
+                        singleBenchmark={calcAllBenchmarks[calcActiveMode]}
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-glass rounded-xl p-8 text-center text-slate-500 flex flex-col items-center justify-center space-y-3 h-[320px]">
+                    <Calculator className="w-8 h-8 opacity-40 animate-pulse text-cyan-400" />
+                    <p className="text-xs uppercase font-bold tracking-wider leading-relaxed text-slate-300">
+                      Awaiting Sourcing Inputs
+                    </p>
+                    <p className="text-[10px] text-slate-500">Configure lanes and weight on the left panel to evaluate live rates.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* ZONE 3 (RIGHT 25%): Live Carrier Benchmarks */}
+            <div className="lg:w-[25%] bg-black/85 overflow-y-auto p-6 space-y-6 flex flex-col justify-between">
+              <div className="space-y-6">
+                <div>
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400">Carrier Benchmarks</h2>
+                  <p className="text-[9px] text-slate-500 uppercase tracking-wide mt-1">Live market comparison rates</p>
+                </div>
+
+                {calcShowResults ? (
+                  <div className="space-y-4 animate-fade-in">
+                    {(calcActiveMode === 'all' || calcActiveMode === 'road') && (
+                      <div className="space-y-3">
+                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Road FTL Carriers</div>
+                        {[
+                          { name: 'Blue Dart FTL', rate: calcAllQuotes.road ? Math.round(calcAllQuotes.road.total * 1.12) : 20160, days: 4, type: 'Premium' },
+                          { name: 'Safexpress', rate: calcAllQuotes.road ? Math.round(calcAllQuotes.road.total * 1.04) : 18720, days: 5, type: 'Standard' },
+                          { name: 'Gati KWE FTL', rate: calcAllQuotes.road ? Math.round(calcAllQuotes.road.total * 0.94) : 16920, days: 6, type: 'Budget' }
+                        ].map((c, i) => (
+                          <div key={i} className="bg-glass border border-white/5 p-4 rounded-xl space-y-2 hover:border-cyan-400/20 transition-colors">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <div className="text-xs font-bold text-white">{c.name}</div>
+                                <div className="text-[9px] text-slate-500 font-mono mt-0.5">{c.type} • {c.days} days</div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-xs font-bold text-cyan-400 font-mono">₹{c.rate.toLocaleString('en-IN')}</div>
+                                <div className="text-[8px] text-slate-400 mt-0.5 uppercase tracking-wider">Est. Quote</div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {(calcActiveMode === 'all' || calcActiveMode === 'air') && (
+                      <div className="space-y-3 pt-2">
+                        <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-1">Air Express Carriers</div>
+                        {[
+                          { name: 'SpiceXpress', rate: calcAllQuotes.air ? Math.round(calcAllQuotes.air.total * 0.95) : 42750, days: 1, type: 'Value Cargo' },
+                          { name: 'IndiGo CarGo', rate: calcAllQuotes.air ? Math.round(calcAllQuotes.air.total * 1.03) : 46350, days: 1, type: 'Standard' },
+                          { name: 'DHL Express India', rate: calcAllQuotes.air ? Math.round(calcAllQuotes.air.total * 1.25) : 56250, days: 1, type: 'Premium Express' }
+                        ].map((c, i) => (
+                          <div key={i} className="bg-glass border border-white/5 p-4 rounded-xl space-y-2 hover:border-cyan-400/20 transition-colors">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <div className="text-xs font-bold text-white">{c.name}</div>
+                                <div className="text-[9px] text-slate-500 font-mono mt-0.5">{c.type} • {c.days} day</div>
+                              </div>
+                              <div className="text-right">
+                                <div className="text-xs font-bold text-cyan-400 font-mono">₹{c.rate.toLocaleString('en-IN')}</div>
+                                <div className="text-[8px] text-slate-400 mt-0.5 uppercase tracking-wider">Est. Quote</div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="bg-glass border border-dashed border-white/5 rounded-xl p-6 text-center text-slate-600 h-[240px] flex flex-col items-center justify-center space-y-2">
+                    <p className="text-[10px] uppercase font-bold tracking-wider">No Benchmarks Compiled</p>
+                    <p className="text-[9px] text-slate-500 max-w-[180px] mx-auto">Carrier rates compile dynamically once the calculation matrix runs.</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Action Footer */}
+              <div className="pt-6 border-t border-white/5">
+                <button
+                  onClick={() => setAdminTab('leads')}
+                  className="w-full flex items-center justify-center gap-2 bg-white/5 border border-white/10 hover:bg-white/10 text-white font-bold text-xs uppercase tracking-wider py-3.5 rounded-xl transition-colors cursor-pointer"
+                >
+                  <span>Return to Leads Pipeline</span>
+                  <ArrowRight className="w-4 h-4 text-cyan-400" />
+                </button>
+              </div>
+            </div>
+
+            {/* Help modal */}
+            <AnimatePresence>
+              {calcShowHelpModal && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                >
+                  <motion.div
+                    initial={{ scale: 0.95 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0.95 }}
+                    transition={springStandard}
+                    className="bg-black border border-white/10 rounded-organic-2 p-8 max-w-sm w-full space-y-6 shadow-2xl"
+                  >
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-lg font-bold text-white font-display">Keyboard Control Center</h3>
+                      <button onClick={() => setCalcShowHelpModal(false)} className="text-slate-400 hover:text-white cursor-pointer">
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                    <div className="space-y-4 text-xs font-mono text-slate-300">
+                      <div className="flex justify-between border-b border-white/5 pb-2">
+                        <span>Calculate Rates</span>
+                        <span className="text-cyan-400">Cmd + Enter</span>
+                      </div>
+                      <div className="flex justify-between border-b border-white/5 pb-2">
+                        <span>Reset Overrides</span>
+                        <span className="text-cyan-400">Cmd+Shift+C</span>
+                      </div>
+                      <div className="flex justify-between border-b border-white/5 pb-2">
+                        <span>All Modes view</span>
+                        <span className="text-cyan-400">1</span>
+                      </div>
+                      <div className="flex justify-between border-b border-white/5 pb-2">
+                        <span>Road Freight</span>
+                        <span className="text-cyan-400">2</span>
+                      </div>
+                      <div className="flex justify-between border-b border-white/5 pb-2">
+                        <span>Air Freight</span>
+                        <span className="text-cyan-400">3</span>
+                      </div>
+                      <div className="flex justify-between border-b border-white/5 pb-2">
+                        <span>Sea Freight</span>
+                        <span className="text-cyan-400">4</span>
+                      </div>
+                      <div className="flex justify-between border-b border-white/5 pb-2">
+                        <span>Open Help Menu</span>
+                        <span className="text-cyan-400">? / H</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setCalcShowHelpModal(false)}
+                      className="w-full py-2.5 bg-gradient-accent text-white font-bold text-xs uppercase tracking-wider rounded-xl cursor-pointer"
+                    >
+                      Close documentation
+                    </button>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+          </div>
+        ) : (
+          <div className="p-8 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-4 gap-8">
           
           <div className="lg:col-span-3 space-y-8">
             {role === 'admin' && (
@@ -1080,6 +1617,7 @@ export default function DashboardPage() {
           </div>
 
         </div>
+      )}
 
       </main>
     </div>

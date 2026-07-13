@@ -1,6 +1,7 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useParticleBurst } from "@/hooks/useParticleBurst";
 import { springStandard } from "@/lib/animations/variants";
@@ -19,12 +20,25 @@ export const AnimatedInput: React.FC<AnimatedInputProps> = ({
   className = "",
   ...props
 }) => {
+  const [isMounted, setIsMounted] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const hasValue = value !== undefined && value !== null && value !== "";
   const { particles, triggerBurst } = useParticleBurst();
 
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return (
+      <div className="relative w-full h-[52px] bg-black/40 border border-white/5 rounded-xl flex items-center px-3">
+        <span className="text-[10px] text-slate-500 uppercase tracking-wider">{label}</span>
+      </div>
+    );
+  }
+
   return (
-    <div className="relative w-full group">
+    <div className="relative w-full group" suppressHydrationWarning={true}>
       {/* Particle Burst effect on focus */}
       {particles.map((p) => (
         <motion.span
@@ -78,6 +92,7 @@ export const AnimatedInput: React.FC<AnimatedInputProps> = ({
         className={`w-full bg-black/40 border ${
           error ? "border-rose-500/50 focus:border-rose-500" : "border-white/5 focus:border-cyan-400"
         } rounded-xl pl-3 pr-3 py-3.5 text-xs text-white placeholder-transparent outline-none transition-all duration-300 focus:bg-cyan-500/[0.01] focus:shadow-[0_0_20px_rgba(34,211,238,0.08)] ${className}`}
+        suppressHydrationWarning={true}
         {...props}
       />
 
