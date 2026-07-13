@@ -5,7 +5,7 @@ import * as THREE from "three";
 import { useSpring } from "framer-motion";
 import { spring } from "@/lib/animations/variants";
 
-export const HeroScene: React.FC = () => {
+export const HeroScene: React.FC<{ className?: string }> = ({ className = '' }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // Framer Motion spring values for smooth camera parallax using variants.ts springs
@@ -239,7 +239,7 @@ export const HeroScene: React.FC = () => {
   return (
     <div 
       ref={containerRef} 
-      className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-hidden" 
+      className={`absolute inset-0 w-full h-full pointer-events-none z-0 overflow-hidden ${className}`} 
     />
   );
 };
