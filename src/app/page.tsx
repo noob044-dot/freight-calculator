@@ -10,7 +10,8 @@ import { HeroScene } from '@/components/three/HeroScene';
 import { ScrollProgress } from '@/components/ui/ScrollProgress';
 import { 
   springGentle, springStandard, springMagnetic, 
-  staggerContainer, fadeUp, counterVariants, pageTransition 
+  staggerContainer, fadeUp, counterVariants, pageTransition,
+  fadeUpMagnetic
 } from '@/lib/animations/variants';
 
 export default function Home() {
@@ -116,7 +117,9 @@ export default function Home() {
 
           {/* Big Satoshi title - font-display maps to Satoshi via globals.css */}
           <motion.h1 
-            variants={pageTransition}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={pageTransition}
             className="text-5xl sm:text-7xl lg:text-8xl font-light tracking-tight leading-none text-white select-text"
           >
             Freight <br className="sm:hidden" />
