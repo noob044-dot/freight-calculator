@@ -1,10 +1,10 @@
-import type { Variants, Transition } from 'framer-motion';
+import type { Variants, Transition, Easing } from 'framer-motion';
 
 // ── User Requested Presets ──────────────────────────────────
 export const spring: Transition = { type: 'spring', stiffness: 280, damping: 24 };
 export const springMagnetic: Transition = { type: 'spring', stiffness: 450, damping: 30 };
 export const stagger = { delay: 60, staggerChildren: 80 };
-export const pageTransition = { duration: 0.4, ease: [0.4, 0, 0.2, 1] };
+export const pageTransition: Transition = { duration: 0.4, ease: [0.4, 0, 0.2, 1] as Easing };
 
 // ── Spring Presets ──────────────────────────────────────────
 export const springStandard: Transition = { type: 'spring', stiffness: 280, damping: 24 };
