@@ -1,13 +1,13 @@
 import type { Variants, Transition } from 'framer-motion';
 
 // ── User Requested Presets ──────────────────────────────────
-export const spring = { stiffness: 280, damping: 24 };
-export const springMagnetic = { stiffness: 450, damping: 30 };
+export const spring: Transition = { type: 'spring', stiffness: 280, damping: 24 };
+export const springMagnetic: Transition = { type: 'spring', stiffness: 450, damping: 30 };
 export const stagger = { delay: 60, staggerChildren: 80 };
 export const pageTransition = { duration: 0.4, ease: [0.4, 0, 0.2, 1] };
 
 // ── Spring Presets ──────────────────────────────────────────
-export const springStandard: Transition = { type: 'spring', ...spring };
+export const springStandard: Transition = { type: 'spring', stiffness: 280, damping: 24 };
 export const springGentle: Transition = { type: 'spring', stiffness: 120, damping: 20 };
 export const springSnappy: Transition = { type: 'spring', stiffness: 400, damping: 15 };
 
@@ -121,7 +121,7 @@ export const counterItem = {
 // ── Success Morph ───────────────────────────────────────────
 export const successMorph = {
   initial: { rotate: -90, scale: 0 },
-  animate: { rotate: 0, scale: 1, transition: { type: 'spring', stiffness: 500, damping: 20 } },
+  animate: { rotate: 0, scale: 1, transition: { type: 'spring' as const, stiffness: 500, damping: 20 } },
 };
 
 export const counterVariants = {
@@ -137,7 +137,7 @@ export const counterVariants = {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { type: 'spring', stiffness: 200, damping: 15 }
+      transition: { type: 'spring' as const, stiffness: 200, damping: 15 }
     }
   }
 };
